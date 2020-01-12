@@ -32,7 +32,7 @@ public class Replacement {
 			
 			int len = src.length>dest.length?src.length:dest.length;
 			String line=null;
-			String result ="";
+			StringBuffer SB = new StringBuffer();
 			System.out.println(F.getName()+" STARTED");
 			while((line=BR.readLine())!=null) {
 				for(int i=0;i<len;i++) {
@@ -41,11 +41,11 @@ public class Replacement {
 						System.out.println("REPLACE!"+line);
 					}
 				}
-				result += line+"\n";
+				SB.append(line+"\n");
 			}
 			BR.close();
 			BW = new BufferedWriter(new FileWriter(F));
-			BW.write(result);
+			BW.write(SB.toString());
 			BW.close();
 			System.out.println(F.getName()+" FINISHED");
 		} catch (Exception e) {
