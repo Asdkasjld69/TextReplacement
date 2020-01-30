@@ -35,11 +35,15 @@ public class Replacement {
 			StringBuffer SB = new StringBuffer();
 			System.out.println(F.getName()+" STARTED");
 			while((line=BR.readLine())!=null) {
+				boolean flag = false;
 				for(int i=0;i<len;i++) {
 					if(line.contains(src[i])) {
 						line = line.replaceAll(src[i], dest[i]);
-						System.out.println("REPLACE!"+line);
+						flag = true;
 					}
+				}
+				if(flag) {
+					System.out.println("REPLACE!"+line);
 				}
 				SB.append(line+"\n");
 			}
