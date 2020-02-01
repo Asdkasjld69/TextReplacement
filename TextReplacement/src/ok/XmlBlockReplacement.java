@@ -27,7 +27,7 @@ public class XmlBlockReplacement {
 		try {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
-				System.out.println("NOT READY YET!!!");
+				System.out.println(F.getName()+" FAILED!!!");
 				BR.close();
 				return;
 			}
