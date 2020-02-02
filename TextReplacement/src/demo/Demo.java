@@ -16,7 +16,7 @@ public class Demo {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		ArrayList<File> files = iterDir(path,suffix);
-		/*String conf = TextDataReader.read(config);
+		String conf = TextDataReader.read(config);
 		String[] confs = conf.split("\n");
 		ArrayList<String> srcs = new ArrayList<String>();
 		ArrayList<String> dests = new ArrayList<String>();
@@ -39,7 +39,8 @@ public class Demo {
 					break;
 				}
 			}
-		}*/
+		}
+		
 		System.out.println("================BLOCK=================");
 		String[][] tag = {{"Controller","1","1","1","1","not"},{"Node","1","1"},{"Controller",""}};
 		Object[][] src2 = {{"filterType=\"pos\"","filterType=\"posx\"","filterType=\"posy\"","filterType=\"posz\"","Bone_Spine"},{"name=\"Bone0","name=\"Protag\""},{"filterType=\"scale\""}};
