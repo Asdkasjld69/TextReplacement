@@ -15,7 +15,8 @@ public class Demo {
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		String conf = TextDataReader.read(config);
+		ArrayList<File> files = iterDir(path,suffix);
+		/*String conf = TextDataReader.read(config);
 		String[] confs = conf.split("\n");
 		ArrayList<String> srcs = new ArrayList<String>();
 		ArrayList<String> dests = new ArrayList<String>();
@@ -27,9 +28,10 @@ public class Demo {
 			dests.add(cs[1]);
 		}
 		System.out.println("======================================");
+		
+		System.out.println("================STRING================");
 		Object[] src = srcs.toArray();
 		Object[] dest = dests.toArray();
-		ArrayList<File> files = iterDir(path,suffix);
 		for(File file:files) {
 			for(String suf:suffix) {
 				if(file.getName().matches(".+."+suf)) {
@@ -37,19 +39,19 @@ public class Demo {
 					break;
 				}
 			}
-		}
-		/*
-		String[][] tag = {{"Controller","1","1","1","1","not"},{"Controller",""}};
-		String[][] src = {{"filterType=\"pos\"","filterType=\"posx\"","filterType=\"posy\"","filterType=\"posz\"","name=\"Protag_Bone_Spine"},{"filterType=\"scale\""}};
-		String[] dest = {"",""};
+		}*/
+		System.out.println("================BLOCK=================");
+		String[][] tag = {{"Controller","1","1","1","1","not"},{"Node","1","1"},{"Controller",""}};
+		Object[][] src2 = {{"filterType=\"pos\"","filterType=\"posx\"","filterType=\"posy\"","filterType=\"posz\"","Bone_Spine"},{"name=\"Bone0","name=\"Protag\""},{"filterType=\"scale\""}};
+		Object[] dest2 = {"","",""};
 		for(File file:files) {
 			for(String suf:suffix) {
 				if(file.getName().matches(".+."+suf)) {
-					XmlBlockReplacement.replace(file, tag , src, dest);
+					XmlBlockReplacement.replace(file, tag , src2, dest2);
 					break;
 				}
 			}
-		}*/
+		}
 	}
 	
 	public static ArrayList<File> iterDir(File file,String[] suffix) {
