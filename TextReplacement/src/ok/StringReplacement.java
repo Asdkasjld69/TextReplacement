@@ -19,9 +19,10 @@ import java.io.IOException;
  */
 public class StringReplacement {
 
-	public static void replace(File F,String[] src,String[] dest) {
+	public static void replace(File F,Object[] src,Object[] dest) {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
+		int rows = 0;
 		try {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
@@ -37,13 +38,14 @@ public class StringReplacement {
 			while((line=BR.readLine())!=null) {
 				boolean flag = false;
 				for(int i=0;i<len;i++) {
-					if(line.contains(src[i])) {
-						line = line.replaceAll(src[i], dest[i]);
+					if(line.contains((String)src[i])) {
+						line = line.replaceAll((String)src[i], (String)dest[i]);
 						flag = true;
 					}
 				}
 				if(flag) {
-					System.out.println("REPLACE!"+line);
+					//System.out.println("REPLACE!"+line);
+					rows++;
 				}
 				SB.append(line+"\n");
 			}
@@ -51,7 +53,7 @@ public class StringReplacement {
 			BW = new BufferedWriter(new FileWriter(F));
 			BW.write(SB.toString());
 			BW.close();
-			System.out.println(F.getName()+" FINISHED");
+			System.out.println(F.getName()+" FINISHED("+rows+")");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

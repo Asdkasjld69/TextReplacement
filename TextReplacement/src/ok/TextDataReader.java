@@ -19,25 +19,29 @@ import java.io.IOException;
  */
 public class TextDataReader {
 
-	public static void read(File F) {
+	public static String read(File F) {
 		BufferedReader BR = null;
+		String ret = "*EMPTY*";
 		try {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
 				System.out.println(F.getName()+" FAILED!!!");
 				BR.close();
-				return;
+				return "";
 			}
 			String line=null;
 			System.out.println(F.getName()+" STARTED");
+			StringBuffer SB = new StringBuffer();
 			while((line=BR.readLine())!=null) {
-				System.out.println(line);
+				SB.append(line+"\n");
 			}
 			BR.close();
+			ret = SB.toString();
 			System.out.println(F.getName()+" FINISHED");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return ret;
 	}
 }

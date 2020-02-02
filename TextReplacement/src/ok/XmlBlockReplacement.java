@@ -21,9 +21,10 @@ import java.util.HashMap;
  */
 public class XmlBlockReplacement {
 
-	public static void replace(File F,String[][] tag,String[][] src,String[] dest) {
+	public static void replace(File F,Object[][] tag,Object[][] src,Object[] dest) {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
+		int rows=0;
 		try {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
@@ -42,22 +43,22 @@ public class XmlBlockReplacement {
 						flag = true;
 						HashMap<String,Boolean> ofm = new HashMap<String,Boolean>();
 						for(int n=0;n<src[i].length;n++) {
-							switch(tag[i][n+1]) {
+							switch((String)tag[i][n+1]) {
 							case "not":	break;
 							case "":	break;
-							default:	ofm.put(tag[i][n+1],false);
+							default:	ofm.put((String)tag[i][n+1],false);
 							}
 						}
 						for(int n=0;n<src[i].length;n++) {
-							switch(tag[i][n+1]) {
-							case "not":	if(line.contains(src[i][n])) {
+							switch((String)tag[i][n+1]) {
+							case "not":	if(line.contains((String)src[i][n])) {
 											flag = false;
 										}break;
-							case "":	if(!line.contains(src[i][n])) {
+							case "":	if(!line.contains((String)src[i][n])) {
 											flag = false;
 										}break;
-							default:	if(line.contains(src[i][n])) {
-											ofm.put(tag[i][n+1],true);
+							default:	if(line.contains((String)src[i][n])) {
+											ofm.put((String)tag[i][n+1],true);
 										}
 							}
 							if(!flag) {
@@ -70,16 +71,17 @@ public class XmlBlockReplacement {
 					}
 					if(flag) {
 						while((line=BR.readLine())!=null){
-							if(line.contains("/"+tag[i][0]+">")) {
+							if(line.contains("/"+(String)tag[i][0]+">")) {
 								break;
 							}
 						}
-						line = dest[i];
+						line = (String)dest[i];
 						break;
 					}
 				}
 				if(flag) {
-					System.out.println("REPLACE!"+line);
+					//System.out.println("REPLACE!"+line);
+					rows++;
 				}
 				SB.append(line+"\n");
 			}
@@ -87,7 +89,7 @@ public class XmlBlockReplacement {
 			BW = new BufferedWriter(new FileWriter(F));
 			BW.write(SB.toString());
 			BW.close();
-			System.out.println(F.getName()+" FINISHED");
+			System.out.println(F.getName()+" FINISHED("+rows+")");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
