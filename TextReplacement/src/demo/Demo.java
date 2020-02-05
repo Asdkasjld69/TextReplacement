@@ -1,6 +1,7 @@
 package demo;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,19 @@ public class Demo {
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		ArrayList<File> files = iterDir(path,suffix);
+		/*
+		StringBuffer SB = new StringBuffer();
+		int i=0;
+		for(String suff:suffix) {
+			if(i>0) {
+				SB.append("|");
+			}
+			SB.append(".+."+suff);
+			i++;
+		}
+		String suf = SB.toString();
+		
+		ArrayList<File> files = iterFile(path,suf);
 		String conf = TextDataReader.read(config);
 		String[] confs = conf.split("\n");
 		ArrayList<String> srcs = new ArrayList<String>();
@@ -33,12 +46,7 @@ public class Demo {
 		Object[] src = srcs.toArray();
 		Object[] dest = dests.toArray();
 		for(File file:files) {
-			for(String suf:suffix) {
-				if(file.getName().matches(".+."+suf)) {
-					StringReplacement.replace(file, src, dest);
-					break;
-				}
-			}
+			StringReplacement.replace(file, src, dest);
 		}
 		
 		System.out.println("================BLOCK=================");
@@ -46,28 +54,92 @@ public class Demo {
 		Object[][] src2 = {{"filterType=\"pos\"","filterType=\"posx\"","filterType=\"posy\"","filterType=\"posz\"","Bone_Spine"},{"name=\"Bone0","name=\"Protag\""},{"filterType=\"scale\""}};
 		Object[] dest2 = {"","",""};
 		for(File file:files) {
-			for(String suf:suffix) {
-				if(file.getName().matches(".+."+suf)) {
-					XmlBlockReplacement.replace(file, tag , src2, dest2);
-					break;
+			XmlBlockReplacement.replace(file, tag , src2, dest2);
+		}
+		*/
+		
+		/*
+		File[] rts = File.listRoots();
+		long start = System.currentTimeMillis();
+		for(File rt:rts) {
+			System.out.println(rt.getAbsolutePath());
+			ArrayList<File> fs = iterDir(rt);
+			if(!fs.isEmpty()) {
+				for(File f:fs) {
+					System.out.println(f.getAbsolutePath());
 				}
 			}
 		}
+		System.out.println("time lapse:"+(System.currentTimeMillis()-start)+"ms");*/
 	}
 	
-	public static ArrayList<File> iterDir(File file,String[] suffix) {
+	public static ArrayList<File> iterFile(File file,String suffix) {
 		ArrayList<File> fl = new ArrayList<File>();
 		if(file.isDirectory()) {
-			File[] files = file.listFiles();
-			for(File f:files) {
-				ArrayList<File> itl = iterDir(f,suffix);
-				for(File itf:itl) {
-					fl.add(itf);
+			File[] files = file.listFiles(new FileFilter() {
+
+				@Override
+				public boolean accept(File pathname) {
+					// TODO Auto-generated method stub
+					if(pathname.isDirectory()||file.getName().matches(suffix)) {
+						return true;
+					}
+					return false;
+				}
+				
+			});
+			if(files!=null) {
+				for(File f:files) {
+					ArrayList<File> itl = iterFile(f,suffix);
+					fl.addAll(itl);
 				}
 			}
 		}
 		else {
 			fl.add(file);
+		}
+		return fl;
+	}
+	
+	public static ArrayList<File> iterFile(File file) {
+		ArrayList<File> fl = new ArrayList<File>();
+		if(file.isDirectory()) {
+			File[] files = file.listFiles();
+			if(files!=null) {
+				for(File f:files) {
+					ArrayList<File> itl = iterFile(f);
+					fl.addAll(itl);
+				}
+			}
+		}
+		else {
+			fl.add(file);
+		}
+		return fl;
+	}
+	
+	public static ArrayList<File> iterDir(File file) {
+		ArrayList<File> fl = new ArrayList<File>();
+		if(file.isDirectory()) {
+			fl.add(file);
+			File[] files = file.listFiles(new FileFilter() {
+
+				@Override
+				public boolean accept(File pathname) {
+					// TODO Auto-generated method stub
+					if(pathname.isDirectory()) {
+						return true;
+					}
+					return false;
+				}
+				
+			});
+			if(files!=null) {
+				for(File f:files) {
+					ArrayList<File> itl = iterDir(f);
+					fl.addAll(itl);
+				}
+			}
 		}
 		return fl;
 	}

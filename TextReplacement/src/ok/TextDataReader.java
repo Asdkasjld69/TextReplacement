@@ -25,19 +25,19 @@ public class TextDataReader {
 		try {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
-				System.out.println(F.getName()+" FAILED!!!");
+				System.out.println("READ "+F.getName()+" FAILED!!!");
 				BR.close();
 				return "";
 			}
 			String line=null;
-			System.out.println(F.getName()+" STARTED");
+			System.out.println("READ "+F.getName()+" STARTED");
 			StringBuffer SB = new StringBuffer();
 			while((line=BR.readLine())!=null) {
 				SB.append(line+"\n");
 			}
 			BR.close();
 			ret = SB.toString();
-			System.out.println(F.getName()+" FINISHED");
+			System.out.println("READ "+F.getName()+" FINISHED");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
