@@ -1,10 +1,16 @@
 package demo;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import javax.swing.JButton;
+
+import ok.Layout;
 import ok.StringReplacement;
 import ok.TextDataReader;
 import ok.XmlBlockReplacement;
@@ -16,39 +22,52 @@ public class Demo {
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		/*
-		StringBuffer SB = new StringBuffer();
-		int i=0;
-		for(String suff:suffix) {
-			if(i>0) {
-				SB.append("|");
+		Layout L = new Layout();
+		L.loadConfig(config);
+		Map<String, JButton> buttons = L.getActions();
+		buttons.get("add").addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("ADD");
 			}
-			SB.append(".+."+suff);
-			i++;
-		}
-		String suf = SB.toString();
+			
+		});
 		
-		ArrayList<File> files = iterFile(path,suf);
-		String conf = TextDataReader.read(config);
-		String[] confs = conf.split("\n");
-		ArrayList<String> srcs = new ArrayList<String>();
-		ArrayList<String> dests = new ArrayList<String>();
-		System.out.println("======================================");
-		for(String cfs:confs) {
-			String[] cs = cfs.split("\t");
-			System.out.println("["+cs[0]+" -> "+cs[1]+"]");
-			srcs.add(cs[0]);
-			dests.add(cs[1]);
-		}
-		System.out.println("======================================");
+		buttons.get("remove").addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("REMOVE");
+			}
+			
+		});
 		
-		System.out.println("================STRING================");
-		Object[] src = srcs.toArray();
-		Object[] dest = dests.toArray();
-		for(File file:files) {
-			StringReplacement.replace(file, src, dest);
-		}
-		
+		buttons.get("commit").addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				StringBuffer SB = new StringBuffer();
+				int i=0;
+				for(String suff:suffix) {
+					if(i>0) {
+						SB.append("|");
+					}
+					SB.append(".+."+suff);
+					i++;
+				}
+				String suf = SB.toString();
+				ArrayList<File> files = iterFile(path,suf);
+				L.commitChanges(files);
+				L.overrideConfig(config);
+				System.out.println("COMMIT");
+			}
+			
+		});
+		/*
 		System.out.println("================BLOCK=================");
 		String[][] tag = {{"Controller","1","1","1","1","not"},{"Node","1","1"},{"Controller",""}};
 		Object[][] src2 = {{"filterType=\"pos\"","filterType=\"posx\"","filterType=\"posy\"","filterType=\"posz\"","Bone_Spine"},{"name=\"Bone0","name=\"Protag\""},{"filterType=\"scale\""}};
@@ -81,9 +100,10 @@ public class Demo {
 				@Override
 				public boolean accept(File pathname) {
 					// TODO Auto-generated method stub
-					if(pathname.isDirectory()||file.getName().matches(suffix)) {
+					if(pathname.isDirectory()||pathname.getName().matches(suffix)) {
 						return true;
 					}
+					System.out.println(pathname);
 					return false;
 				}
 				
