@@ -1,3 +1,4 @@
-.+.txt|.+.xaf|.+.xml
+.+.txt|.+.xaf|.+.xml|.+.rtf
 C:\Users\cnmbx\Desktop\TextReplacement\path
-22	@
+x	u
+u	x
