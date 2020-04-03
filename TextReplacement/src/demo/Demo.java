@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 import ok.Layout_Text;
 import ok.StringReplacement;
@@ -16,16 +19,13 @@ import ok.TextDataReader;
 import ok.XmlBlockReplacement;
 
 public class Demo {
-	private static File path = new File("path");
+
 	private static File config = new File("config/StringToReplace.txt");
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Layout_Text L = new Layout_Text();
 		L.loadConfig(config);
-		if(!path.exists()) {
-			path.mkdirs();
-		}
 		Map<String, JButton> buttons = L.getActions();
 		buttons.get("add").addActionListener(new ActionListener() {
 
@@ -52,8 +52,13 @@ public class Demo {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
+				File path = new File(L.getPath());
 				if(!path.exists()) {
-					path.mkdirs();
+					JOptionPane.showConfirmDialog(L, "Non-existing path", "Error", JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+				if(JOptionPane.showConfirmDialog(L,"<html>All Files following the <font color='red'><b>Regu</b></font> under <u>\""+path.getAbsolutePath()+"\"</u> will be checked recrusively!</html>","Are you sure?" ,JOptionPane.OK_OPTION)!=0) {
+					return;
 				}
 				L.overrideConfig(config);
 				ArrayList<File> files = iterFile(path,L.getRegu());
@@ -97,7 +102,6 @@ public class Demo {
 					if(pathname.isDirectory()||pathname.getName().matches(suffix)) {
 						return true;
 					}
-					System.out.println(pathname);
 					return false;
 				}
 				

@@ -60,7 +60,6 @@ public class StringReplacement {
 			BW.close();
 			time = new Date();
 			log.append(F.getName()+" #FINISHED("+rows+")\t"+time.toString()+"\n");
-			System.out.println("FINISH");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
