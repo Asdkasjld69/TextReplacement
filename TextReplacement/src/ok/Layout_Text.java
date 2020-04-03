@@ -2,6 +2,7 @@ package ok;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -33,8 +34,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
-public class Layout {
+public class Layout_Text {
 	private static String[] headers = { "Before", "After" };
 	private static String[] lheaders = { "Message", "Time" };
 	private static String[][] values = { { "EXAMPLE", "EXAMPLE" } };
@@ -59,13 +61,17 @@ public class Layout {
 	private JButton down = new JButton("down");
 	private Map<String, JButton> buttons = new HashMap<String, JButton>();
 	private Dimension size = new Dimension(716,400);
-	private double ratio = 0.3;
+	private double ratio = 0.4;
 	private JDialog dialog_about = new JDialog();
-	public Layout() {
+	JLabel intro = new JLabel("<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
+	
+	public Layout_Text() {
 		JFrame main = new JFrame();
 		JMenuBar mbar = new JMenuBar();
 		JButton about = new JButton("About");
+		JButton switchmode = new JButton("Tag");
 		about.setBackground(new Color(238,238,238));
+		switchmode.setBackground(new Color(112,204,255));
 		about.addActionListener(new ActionListener() {
 
 			@Override
@@ -77,17 +83,18 @@ public class Layout {
 			
 		});
 		dialog_about.setTitle("About me");
-		dialog_about.setSize(224, 112);
+		dialog_about.setSize(224, 128);
 		dialog_about.setResizable(false);
 		FlowLayout flow_about = new FlowLayout();
 		flow_about.setAlignment(FlowLayout.LEFT);
 		dialog_about.setLayout(flow_about);
-		JLabel intro = new JLabel("<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
 		dialog_about.add(intro);
 		dialog_about.add(new JLabel("hotmail:"));
 		dialog_about.add(new JLabel("cnmbxjj@hotmail.com"));
 		dialog_about.add(new JLabel("discord:"));
 		dialog_about.add(new JLabel("5sfPA3m"));
+		dialog_about.add(new JLabel("<html><b>*Word&Excel not supported (yet)*</b></html>"));
+		mbar.add(switchmode);
 		mbar.add(about);
 		main.setJMenuBar(mbar);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -101,7 +108,35 @@ public class Layout {
 		JPanel panel_bottom = new JPanel();
 		JPanel panel_left = new JPanel();
 		JTable body = new JTable(DTM);
-		JTable log = new JTable(LDTM);
+		JTable log = new JTable(LDTM) {
+
+			@Override
+			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+				// TODO Auto-generated method stub
+				Component comp = super.prepareRenderer(renderer, row, column);
+				comp.setBackground(new Color(255,255,255));
+				comp.setForeground(new Color(0,0,0));
+				String[] mess = LDTM.getValueAt(row, 0).toString().split("#");
+				if(mess.length>0) {
+					if(mess[mess.length-1].equals("COMMIT")) {
+						comp.setBackground(new Color(255,64,255));
+					}
+					if(mess[mess.length-1].equals("STARTED")) {
+						comp.setBackground(new Color(64,64,255));
+						comp.setForeground(new Color(255,255,255));
+					}
+					if(mess[mess.length-1].contains("FINISHED")) {
+						comp.setBackground(new Color(64,255,64));
+					}
+					if(mess[mess.length-1].contains("FAILED")) {
+						comp.setBackground(new Color(255,64,64));
+						comp.setForeground(new Color(255,255,255));
+					}
+				}
+				return comp;
+			}
+			
+		};
 		panel_main.setLayout(new BorderLayout());
 		panel_top.setLayout(new FlowLayout());
 		panel_bottom.setLayout(new FlowLayout());
@@ -143,7 +178,7 @@ public class Layout {
 		panel_body.setVisible(true);
 		panel_bottom.setVisible(true);
 		panel_log.setVisible(true);
-		panel_log.setPreferredSize(new Dimension((int)(main.getWidth()*0.3),panel_log.getHeight()));
+		panel_log.setPreferredSize(new Dimension((int)(main.getWidth()*ratio),panel_log.getHeight()));
 		main.setVisible(true);
 		int height_top = panel_top.getHeight();
 		main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -300,10 +335,10 @@ public class Layout {
 			}
 			return;
 		}
-		String conf = TextDataReader.read(config);
+		String[] conf = TextDataReader.read(config);
 		boolean reguflag = true;
-		if(conf.length()>0) {
-			String[] confs = conf.split("\n");
+		if(conf[0].length()>0) {
+			String[] confs = conf[0].split("\n");
 			System.out.println("======================================");
 			for (String cfs : confs) {
 				if(reguflag) {
@@ -320,6 +355,11 @@ public class Layout {
 			}
 			System.out.println("======================================");
 		}
+		String[] logs = conf[1].split("\n");
+		for(String l:logs) {
+			String[] log = l.split("\t");
+			LDTM.addRow(new String[] {log[0],log[1]});
+		}
 	}
 
 	public Map<String, JButton> getActions() {
@@ -327,15 +367,25 @@ public class Layout {
 	}
 
 	public void commitChanges(ArrayList<File> files) {
+		int rows = DTM.getRowCount();
+		srcs = new ArrayList<String>();
+		dests = new ArrayList<String>();
+		for(int i=0;i<rows;i++) {
+			srcs.add(DTM.getValueAt(i, 0).toString());
+			dests.add(DTM.getValueAt(i, 1).toString());
+		}
 		Object[] src = srcs.toArray();
 		Object[] dest = dests.toArray();
-		String log = "COMMIT!";
+		String log = "COMMIT #COMMIT";
 		Date time =new Date();
 		LDTM.addRow(new String[] {log,time.toString()});
 		for (File file : files) {
-			time =new Date();
 			log = StringReplacement.replace(file, src, dest);
-			LDTM.addRow(new String[] {log,time.toString()});
+			String[] lo = log.split("\n");
+			for(String l:lo) {
+				String[] m = l.split("\t");
+				LDTM.addRow(new String[] {m[0],m[1]});
+			}
 		}
 	}
 

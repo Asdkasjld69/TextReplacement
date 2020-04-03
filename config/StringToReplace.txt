@@ -1,2 +1,2 @@
-.+.xaf|.+.txt
-aaa	aa
+.+.txt
+3445	abc

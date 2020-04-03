@@ -10,7 +10,7 @@ import java.util.Map;
 
 import javax.swing.JButton;
 
-import ok.Layout;
+import ok.Layout_Text;
 import ok.StringReplacement;
 import ok.TextDataReader;
 import ok.XmlBlockReplacement;
@@ -21,7 +21,7 @@ public class Demo {
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		Layout L = new Layout();
+		Layout_Text L = new Layout_Text();
 		L.loadConfig(config);
 		if(!path.exists()) {
 			path.mkdirs();
@@ -58,7 +58,6 @@ public class Demo {
 				L.overrideConfig(config);
 				ArrayList<File> files = iterFile(path,L.getRegu());
 				L.commitChanges(files);
-				System.out.println("COMMIT");
 			}
 			
 		});

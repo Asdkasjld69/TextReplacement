@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * @author cnmbx
@@ -24,10 +25,11 @@ public class StringReplacement {
 		BufferedWriter BW = null;
 		int rows = 0;
 		StringBuffer log = new StringBuffer();
+		Date time = new Date();
 		try {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
-				log.append(F.getName()+" FAILED!!!\n");
+				log.append(F.getName()+" #FAILED!!!\t"+time.toString()+"\n");
 				BR.close();
 				return log.toString();
 			}
@@ -35,7 +37,8 @@ public class StringReplacement {
 			int len = src.length>dest.length?src.length:dest.length;
 			String line=null;
 			StringBuffer SB = new StringBuffer();
-			log.append(F.getName()+" STARTED\n");
+			time = new Date();
+			log.append(F.getName()+" #STARTED\t"+time.toString()+"\n");
 			while((line=BR.readLine())!=null) {
 				boolean flag = false;
 				for(int i=0;i<len;i++) {
@@ -45,7 +48,8 @@ public class StringReplacement {
 					}
 				}
 				if(flag) {
-					log.append(line+"REPLACED!\n");
+					time = new Date();
+					log.append(line+" #REPLACED!\t"+time.toString()+"\n");
 					rows++;
 				}
 				SB.append(line+"\n");
@@ -54,7 +58,9 @@ public class StringReplacement {
 			BW = new BufferedWriter(new FileWriter(F));
 			BW.write(SB.toString());
 			BW.close();
-			log.append(F.getName()+" FINISHED("+rows+")");
+			time = new Date();
+			log.append(F.getName()+" #FINISHED("+rows+")\t"+time.toString()+"\n");
+			System.out.println("FINISH");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

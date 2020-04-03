@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 
 /**
  * @author cnmbx
@@ -19,29 +20,36 @@ import java.io.IOException;
  */
 public class TextDataReader {
 
-	public static String read(File F) {
+	public static String[] read(File F) {
 		BufferedReader BR = null;
-		String ret = "*EMPTY*";
+		String[] ret = {"*EMPTY*",""};
+		StringBuffer cont = new StringBuffer();
+		StringBuffer log = new StringBuffer();
 		try {
 			BR = new BufferedReader(new FileReader(F));
+			Date time = new Date();
 			if(!BR.ready()) {
-				System.out.println("READ "+F.getName()+" FAILED!!!");
+				log.append("READ "+F.getName()+" #FAILED!!!\t"+time.toString()+"\n");
+				ret[1] = log.toString();
 				BR.close();
-				return "";
+				return ret;
 			}
 			String line=null;
-			System.out.println("READ "+F.getName()+" STARTED");
+			time = new Date();
+			log.append("READ "+F.getName()+" #STARTED\t"+time.toString()+"\n");
 			StringBuffer SB = new StringBuffer();
 			while((line=BR.readLine())!=null) {
 				SB.append(line+"\n");
 			}
 			BR.close();
-			ret = SB.toString();
-			System.out.println("READ "+F.getName()+" FINISHED");
+			ret[0] = SB.toString();
+			time = new Date();
+			log.append("READ "+F.getName()+" #FINISHED\t"+time.toString()+"\n");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		ret[1] = log.toString();
 		return ret;
 	}
 }
