@@ -18,12 +18,14 @@ import ok.XmlBlockReplacement;
 public class Demo {
 	private static File path = new File("path");
 	private static File config = new File("config/StringToReplace.txt");
-	private static String[] suffix = {"xaf","xml","txt"};
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Layout L = new Layout();
 		L.loadConfig(config);
+		if(!path.exists()) {
+			path.mkdirs();
+		}
 		Map<String, JButton> buttons = L.getActions();
 		buttons.get("add").addActionListener(new ActionListener() {
 
@@ -50,19 +52,12 @@ public class Demo {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				StringBuffer SB = new StringBuffer();
-				int i=0;
-				for(String suff:suffix) {
-					if(i>0) {
-						SB.append("|");
-					}
-					SB.append(".+."+suff);
-					i++;
+				if(!path.exists()) {
+					path.mkdirs();
 				}
-				String suf = SB.toString();
-				ArrayList<File> files = iterFile(path,suf);
-				L.commitChanges(files);
 				L.overrideConfig(config);
+				ArrayList<File> files = iterFile(path,L.getRegu());
+				L.commitChanges(files);
 				System.out.println("COMMIT");
 			}
 			

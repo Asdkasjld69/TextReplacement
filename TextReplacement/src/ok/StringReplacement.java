@@ -19,22 +19,23 @@ import java.io.IOException;
  */
 public class StringReplacement {
 
-	public static void replace(File F,Object[] src,Object[] dest) {
+	public static String replace(File F,Object[] src,Object[] dest) {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
 		int rows = 0;
+		StringBuffer log = new StringBuffer();
 		try {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
-				System.out.println(F.getName()+" FAILED!!!");
+				log.append(F.getName()+" FAILED!!!\n");
 				BR.close();
-				return;
+				return log.toString();
 			}
 			
 			int len = src.length>dest.length?src.length:dest.length;
 			String line=null;
 			StringBuffer SB = new StringBuffer();
-			System.out.println(F.getName()+" STARTED");
+			log.append(F.getName()+" STARTED\n");
 			while((line=BR.readLine())!=null) {
 				boolean flag = false;
 				for(int i=0;i<len;i++) {
@@ -44,7 +45,7 @@ public class StringReplacement {
 					}
 				}
 				if(flag) {
-					//System.out.println("REPLACE!"+line);
+					log.append(line+"REPLACED!\n");
 					rows++;
 				}
 				SB.append(line+"\n");
@@ -53,10 +54,11 @@ public class StringReplacement {
 			BW = new BufferedWriter(new FileWriter(F));
 			BW.write(SB.toString());
 			BW.close();
-			System.out.println(F.getName()+" FINISHED("+rows+")");
+			log.append(F.getName()+" FINISHED("+rows+")");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return log.toString();
 	}
 }
