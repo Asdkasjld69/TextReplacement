@@ -26,7 +26,6 @@ import javax.swing.text.DefaultStyledDocument;
 public class StringReplacement {
 	private static String OfficeWord = "doc|docx";
 	private static String RichStyleFont = "rtf";
-
 	public static String replace(File F,Object[] src,Object[] dest) {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;

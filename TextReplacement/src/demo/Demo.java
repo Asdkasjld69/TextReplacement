@@ -18,13 +18,13 @@ import ok.StringReplacement;
 import ok.TextDataReader;
 import ok.XmlBlockReplacement;
 
-public class Demo {
+public class Demo implements Runnable {
 
 	private static File config = new File("config/StringToReplace.txt");
 	
+	private static Layout_Text L = new Layout_Text();
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		Layout_Text L = new Layout_Text();
 		L.loadConfig(config);
 		Map<String, JButton> buttons = L.getActions();
 		buttons.get("add").addActionListener(new ActionListener() {
@@ -52,17 +52,7 @@ public class Demo {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				File path = new File(L.getPath());
-				if(!path.exists()) {
-					JOptionPane.showConfirmDialog(L, "Non-existing path", "Error", JOptionPane.WARNING_MESSAGE);
-					return;
-				}
-				if(JOptionPane.showConfirmDialog(L,"<html>All Files following the <font color='red'><b>Regu</b></font> under <u>\""+path.getAbsolutePath()+"\"</u> will be checked recrusively!</html>","Are you sure?" ,JOptionPane.OK_OPTION)!=0) {
-					return;
-				}
-				L.overrideConfig(config);
-				ArrayList<File> files = iterFile(path,L.getRegu());
-				L.commitChanges(files);
+				new Thread(new Demo()).start();
 			}
 			
 		});
@@ -108,6 +98,9 @@ public class Demo {
 			});
 			if(files!=null) {
 				for(File f:files) {
+					if(L.getStopflag()) {
+						break;
+					}
 					ArrayList<File> itl = iterFile(f,suffix);
 					fl.addAll(itl);
 				}
@@ -125,6 +118,9 @@ public class Demo {
 			File[] files = file.listFiles();
 			if(files!=null) {
 				for(File f:files) {
+					if(L.getStopflag()) {
+						break;
+					}
 					ArrayList<File> itl = iterFile(f);
 					fl.addAll(itl);
 				}
@@ -154,12 +150,33 @@ public class Demo {
 			});
 			if(files!=null) {
 				for(File f:files) {
+					if(L.getStopflag()) {
+						break;
+					}
 					ArrayList<File> itl = iterDir(f);
 					fl.addAll(itl);
 				}
 			}
 		}
 		return fl;
+	}
+
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		File path = new File(L.getPath());
+		if(!path.exists()) {
+			JOptionPane.showConfirmDialog(L, "Non-existing path", "Error", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		if(JOptionPane.showConfirmDialog(L,"<html>All Files following the <font color='red'><b>Regu</b></font> under <u>\""+path.getAbsolutePath()+"\"</u> will be checked recrusively!</html>","Are you sure?" ,JOptionPane.OK_OPTION)!=0) {
+			return;
+		}
+		L.overrideConfig(config);
+		L.setState(1);
+		ArrayList<File> files = iterFile(path,L.getRegu());
+		L.commitChanges(files);
+		L.setState(0);
 	}
 
 }

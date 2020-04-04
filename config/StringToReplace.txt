@@ -1,4 +1,2 @@
 .+.txt|.+.xaf|.+.xml|.+.rtf
-C:\Users\cnmbx\Desktop\TextReplacement\path
-x	u
-u	x
+C:\Users\cnmbx\Desktop

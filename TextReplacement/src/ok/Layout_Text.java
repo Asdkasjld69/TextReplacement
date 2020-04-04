@@ -95,7 +95,9 @@ public class Layout_Text extends JFrame {
 	private JDialog error = new JDialog();
 	JLabel intro = new JLabel(
 			"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
-
+	private static boolean stopflag = false;
+	private static int state = 0;
+	
 	public Layout_Text() {
 		super();
 		JMenuBar mbar = new JMenuBar();
@@ -530,5 +532,22 @@ public class Layout_Text extends JFrame {
 
 	public void scrollTo(JTable table, int row) {
 		table.scrollRectToVisible(table.getCellRect(row, 0, true));
+	}
+	
+	public boolean getStopflag() {
+		return stopflag;
+	}
+	
+	public void setState(int S) {
+		state = S;
+		JButton commit = getActions().get("commit");
+		switch(state) {
+		case 0: commit.setEnabled(true);
+				commit.setText("commit");
+										break;
+		case 1: commit.setEnabled(false);
+				commit.setText("busy...");
+										break;
+		}
 	}
 }
