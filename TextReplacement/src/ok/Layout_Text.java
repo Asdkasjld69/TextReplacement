@@ -30,21 +30,30 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
+import demo.Demo;
+
 public class Layout_Text extends JFrame {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static String[] headers = { "Before", "After" };
 	private static String[] lheaders = { "Message", "Time" };
-	private static String[][] values = { { "EXAMPLE", "EXAMPLE" } };
 	private String regu = "";
 	private String path = "path";
 	private DefaultTableModel DTM = new DefaultTableModel(null, headers);
 	private DefaultTableModel LDTM = new DefaultTableModel(null, lheaders) {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		public void setValueAt(Object aValue, int row, int column) {
@@ -59,6 +68,11 @@ public class Layout_Text extends JFrame {
 	private JTextField input_path = new JTextField();
 	private JTable body = new JTable(DTM);
 	private JTable log = new JTable(LDTM) {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
 		@Override
 		public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
@@ -132,7 +146,7 @@ public class Layout_Text extends JFrame {
 		mbar.add(input_path);
 		this.setJMenuBar(mbar);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		this.setTitle("Replace Text");
+		this.setTitle(Demo.title);
 		Dimension minsize = new Dimension(600, 400);
 		this.setMinimumSize(minsize);
 		this.setSize(size);
@@ -338,11 +352,6 @@ public class Layout_Text extends JFrame {
 
 	public void loadConfig(File config) {
 		if (!config.exists()) {
-			String p = config.getPath().replace(config.getName(), "");
-			File pa = new File(p);
-			if (!pa.exists()) {
-				pa.mkdirs();
-			}
 			try {
 				config.createNewFile();
 			} catch (IOException e) {
@@ -374,14 +383,14 @@ public class Layout_Text extends JFrame {
 				System.out.println("[" + cs[0] + " -> " + cs[1] + "]");
 				srcs.add(cs[0]);
 				dests.add(cs[1]);
-				DTM.addRow(new String[] { cs[0], cs[1] });
+				addLog(cs[0],cs[1]);
 			}
 			System.out.println("======================================");
 		}
 		String[] logs = conf[1].split("\n");
 		for (String l : logs) {
 			String[] log = l.split("\t");
-			LDTM.addRow(new String[] { log[0], log[1] });
+			addLog(log[0],log[1]);
 		}
 	}
 
@@ -401,21 +410,20 @@ public class Layout_Text extends JFrame {
 		Object[] dest = dests.toArray();
 		String log = "START #COMMIT";
 		Date time = new Date();
-		LDTM.addRow(new String[] { log, time.toString() });
-		JScrollBar lsb = panel_log.getVerticalScrollBar();
+		addLog(log,time.toString());
 		scrollTo(this.log, this.log.getRowCount() - 1);
 		for (File file : files) {
 			log = StringReplacement.replace(file, src, dest);
 			String[] lo = log.split("\n");
 			for (String l : lo) {
 				String[] m = l.split("\t");
-				LDTM.addRow(new String[] { m[0], m[1] });
+				addLog(m[0],m[1]);
 				scrollTo(this.log, this.log.getRowCount() - 1);
 			}
 		}
 		log = "END #COMMIT";
 		time = new Date();
-		LDTM.addRow(new String[] { log, time.toString() });
+		addLog(log,time.toString());
 		scrollTo(this.log, this.log.getRowCount() - 1);
 	}
 
@@ -549,5 +557,9 @@ public class Layout_Text extends JFrame {
 				commit.setText("busy...");
 										break;
 		}
+	}
+	
+	public void addLog(String info,String time) {
+		LDTM.addRow(new String[] { info, time });
 	}
 }

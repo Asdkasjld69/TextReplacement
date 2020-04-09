@@ -7,17 +7,15 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
-import javax.swing.text.rtf.RTFEditorKit;
-import javax.swing.text.BadLocationException;
+
 import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.rtf.RTFEditorKit;
 
 /**
  * @author cnmbx
@@ -30,7 +28,6 @@ public class StringReplacement {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
 		StringBuffer log = new StringBuffer();
-		String filename =  F.getName().split("\\.")[1];
 		int rows = 0;
 		int len = src.length>dest.length?src.length:dest.length;
 		Date time = new Date();

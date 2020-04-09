@@ -1,2 +1,2 @@
-.+.txt|.+.xaf|.+.xml|.+.rtf
-C:\Users\cnmbx\Desktop
+.+.txt
+path

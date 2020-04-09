@@ -4,14 +4,8 @@
 package ok;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Date;
 
 /**
@@ -22,8 +16,7 @@ public class TextDataReader {
 
 	public static String[] read(File F) {
 		BufferedReader BR = null;
-		String[] ret = {"*EMPTY*",""};
-		StringBuffer cont = new StringBuffer();
+		String[] ret = {"",""};
 		StringBuffer log = new StringBuffer();
 		try {
 			BR = new BufferedReader(new FileReader(F));
