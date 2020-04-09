@@ -213,7 +213,7 @@ public class Layout_Text extends JFrame {
 				String after = input_after.getText();
 				srcs.add(before);
 				dests.add(after);
-				DTM.addRow(new String[] { before, after });
+				addChange(before,after);
 				scrollTo(body, body.getRowCount() - 1);
 			}
 
@@ -383,7 +383,7 @@ public class Layout_Text extends JFrame {
 				System.out.println("[" + cs[0] + " -> " + cs[1] + "]");
 				srcs.add(cs[0]);
 				dests.add(cs[1]);
-				addLog(cs[0],cs[1]);
+				addChange(cs[0],cs[1]);
 			}
 			System.out.println("======================================");
 		}
@@ -561,5 +561,9 @@ public class Layout_Text extends JFrame {
 	
 	public void addLog(String info,String time) {
 		LDTM.addRow(new String[] { info, time });
+	}
+	
+	public void addChange(String src,String dest) {
+		DTM.addRow(new String[] { src, dest });
 	}
 }
