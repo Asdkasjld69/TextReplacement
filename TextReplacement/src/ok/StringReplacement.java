@@ -69,6 +69,7 @@ public class StringReplacement {
 				log.append(F.getName()+" #FINISHED("+rows+")\t"+time.toString()+"\n");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
+				time = new Date();
 				log.append(F.getName()+" #FAILED!!!\t"+time.toString()+"\n");
 				e.printStackTrace();
 			}
@@ -78,6 +79,7 @@ public class StringReplacement {
 		try {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
+				time = new Date();
 				log.append(F.getName()+" #FAILED!!!\t"+time.toString()+"\n");
 				BR.close();
 				return log.toString();

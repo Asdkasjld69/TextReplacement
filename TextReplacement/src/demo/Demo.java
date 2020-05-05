@@ -25,7 +25,8 @@ import ok.Layout_Text;
 public class Demo implements Runnable {
 	public static String title = "Replace Text";
 	private static File config_path = new File("config");
-	private static File config = new File(config_path.getPath()+"/StringToReplace.txt");
+	private static File config_s = new File(config_path.getPath()+"/StringToReplace.txt");
+	private static File config_t = new File(config_path.getPath()+"/TagToReplace.txt");
 	private static File lock_flag = new File(config_path.getPath()+"/flag");
 	private static Layout_Text L = null;
 	
@@ -55,37 +56,9 @@ public class Demo implements Runnable {
 	    System.out.println("This is the first instance of this program...");
 	 
 	    L = new Layout_Text();
-		L.loadConfig(config);
-		Map<String, JButton> buttons = L.getActions();
-		buttons.get("add").addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				System.out.println("ADD");
-			}
-			
-		});
+		L.loadConfig();
+		Map<String, JButton> buttons = L.getActions();		
 		
-		buttons.get("remove").addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				System.out.println("REMOVE");
-			}
-			
-		});
-		
-		buttons.get("commit").addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				new Thread(new Demo()).start();
-			}
-			
-		});
 		/*
 		System.out.println("================BLOCK=================");
 		String[][] tag = {{"Controller","1","1","1","1","not"},{"Node","1","1"},{"Controller",""}};
@@ -202,7 +175,7 @@ public class Demo implements Runnable {
 		if(JOptionPane.showConfirmDialog(L,"<html>All Files following the <font color='red'><b>Regu</b></font> under <u>\""+path.getAbsolutePath()+"\"</u> will be checked recrusively!</html>","Are you sure?" ,JOptionPane.OK_OPTION)!=0) {
 			return;
 		}
-		L.overrideConfig(config);
+		L.overrideConfig();
 		L.setState(1);
 		ArrayList<File> files = iterFile(path,L.getRegu());
 		L.commitChanges(files);
