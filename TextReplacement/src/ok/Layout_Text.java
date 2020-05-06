@@ -28,16 +28,20 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
@@ -78,6 +82,7 @@ public class Layout_Text extends JFrame {
 	private HashMap<String, String> tagv = new HashMap<String, String>();
 	private JTextField input_regu = new JTextField(32);
 	private JTextField input_path = new JTextField();
+	private JSpinner input_depth = new JSpinner(new SpinnerNumberModel(0,0,100,1));
 	private JTable body = new JTable(DTM);
 	private JTable log = new JTable(LDTM) {
 
@@ -124,6 +129,7 @@ public class Layout_Text extends JFrame {
 	private JDialog error = new JDialog();
 	JLabel intro = new JLabel(
 			"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
+	private JCheckBox check_safe = new JCheckBox("Safe");
 	int height_top;
 	private boolean stopflag = false;
 	private int state = 0;
@@ -183,6 +189,7 @@ public class Layout_Text extends JFrame {
 		dialog_about.add(new JLabel("<html><b>*Word&Excel not supported (yet)*</b></html>"));
 		mbar.add(switchmode);
 		mbar.add(about);
+		mbar.add(new JLabel("PATH:"));
 		mbar.add(input_path);
 		this.setJMenuBar(mbar);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -191,9 +198,9 @@ public class Layout_Text extends JFrame {
 		this.setMinimumSize(minsize);
 		this.setSize(size);
 		this.setLocation((dim.width - this.getWidth()) / 2, (dim.height - this.getHeight()) / 2);
-
+		check_safe.setSelected(true);
+		
 		JPanel panel_bottom = new JPanel();
-
 		loadTopPanel("text");
 		panel_main.setLayout(new BorderLayout());
 		panel_bottom.setLayout(new FlowLayout());
@@ -201,11 +208,14 @@ public class Layout_Text extends JFrame {
 
 		JLabel label_regu = new JLabel("Regu:");
 		JLabel drag = new JLabel(" ");
+		
 		Cursor cu = new Cursor(Cursor.E_RESIZE_CURSOR);
 		drag.setCursor(cu);
-
 		panel_bottom.add(label_regu);
 		panel_bottom.add(input_regu);
+		panel_bottom.add(new JLabel("depth:"));
+		panel_bottom.add(input_depth);
+		panel_bottom.add(check_safe);
 		panel_left.add(panel_log);
 		panel_left.add(drag, BorderLayout.EAST);
 		panel_main.add(panel_top, BorderLayout.NORTH);
@@ -214,7 +224,6 @@ public class Layout_Text extends JFrame {
 		panel_main.add(panel_left, BorderLayout.WEST);
 		this.add(panel_main);
 		panel_main.setVisible(true);
-
 		panel_body.setVisible(true);
 		panel_bottom.setVisible(true);
 		panel_log.setVisible(true);
@@ -334,6 +343,7 @@ public class Layout_Text extends JFrame {
 			}
 			System.out.println("======================================");
 		}
+		System.out.println(conf_t[0]);
 		if (conf_t[0].length() > 0) {
 			String[] confs_t = conf_t[0].split("\n");
 			System.out.println("======================================");
@@ -345,7 +355,7 @@ public class Layout_Text extends JFrame {
 				ttc.add(tt);
 				ttc.add(tc);
 				tagtc.put(cs[0], ttc);
-				tagv.put(cs[0], cs[3]);
+				tagv.put(cs[0], cs.length<4?"":cs[3]);
 			}
 			for (String cfs : confs_t) {
 				String[] cs = cfs.split("\t");
@@ -355,13 +365,13 @@ public class Layout_Text extends JFrame {
 				tc.add(cs[2]);
 				System.out.println(tagtc);
 				System.out.println(tagv);
-				addChange_t(cs[0], cs[1], cs[2], cs[3]);
+				addChange_t(cs[0], cs[1], cs[2], cs.length<4?"":cs[3]);
 			}
 		}
-		String[] logs = conf[1].split("\n");
+		String[] logs = conf[1].concat(conf_t[1]).split("\n");
 		for (String l : logs) {
 			String[] log = l.split("\t");
-			addLog(log[0], log[1]);
+			addLog(l.replace(log[log.length-1], ""), log[log.length-1]);
 		}
 	}
 
@@ -375,6 +385,7 @@ public class Layout_Text extends JFrame {
 		addLog(log, time.toString());
 		int rows = 0;
 		if (mode) {
+			StringReplacement.setSerial(System.currentTimeMillis());
 			rows = DTM.getRowCount();
 			srcs = new ArrayList<String>();
 			dests = new ArrayList<String>();
@@ -385,14 +396,15 @@ public class Layout_Text extends JFrame {
 			Object[] src = srcs.toArray();
 			Object[] dest = dests.toArray();
 			for (File file : files) {
-				log = StringReplacement.replace(file, src, dest);
+				log = StringReplacement.replace(file, src, dest, check_safe.isSelected());
 				String[] lo = log.split("\n");
 				for (String l : lo) {
 					String[] m = l.split("\t");
-					addLog(m[0], m[1]);
+					addLog(l.replace(m[m.length-1], ""), m[m.length-1]);
 				}
 			}
 		} else {
+			XmlBlockReplacement.setSerial(System.currentTimeMillis());
 			rows = DTM_T.getRowCount();
 			tagtc = new HashMap<String, ArrayList<ArrayList<String>>>();
 			for (int i = 0; i < rows; i++) {
@@ -429,11 +441,11 @@ public class Layout_Text extends JFrame {
 					car.add(ta.toArray());
 					var.add(tagv.get(k));
 				}
-				log = XmlBlockReplacement.replace(file, tar, car, var.toArray());
+				log = XmlBlockReplacement.replace(file, tar, car, var.toArray(), check_safe.isSelected());
 				String[] lo = log.split("\n");
 				for (String l : lo) {
 					String[] m = l.split("\t");
-					addLog(m[0], m[1]);
+					addLog(l.replace(m[m.length-1], ""), m[m.length-1]);
 				}
 			}
 		}
@@ -446,40 +458,50 @@ public class Layout_Text extends JFrame {
 	public void overrideConfig() {
 		regu = input_regu.getText();
 		StringBuffer SB = new StringBuffer();
-		File config = null;
-		if (mode) {
-			config = config_s;
-		} else {
-			config = config_t;
-		}
-		if (!config.exists()) {
+		if (!config_s.exists()) {
 			try {
-				config.createNewFile();
+				config_s.createNewFile();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if (!config_t.exists()) {
+			try {
+				config_t.createNewFile();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		try {
-			BufferedWriter BW = new BufferedWriter(new FileWriter(config));
-			if (mode) {
-				SB.append(regu + "\n");
-				SB.append(path + "\n");
-				for (int i = 0; i < srcs.size(); i++) {
-					SB.append(srcs.get(i) + "\t" + dests.get(i) + "\n");
+			BufferedWriter BW = new BufferedWriter(new FileWriter(config_s));
+			SB.append(regu + "\n");
+			SB.append(path + "\n");
+			for (int i = 0; i < srcs.size(); i++) {
+				SB.append(srcs.get(i) + "\t" + dests.get(i) + "\n");
+			}
+			BW.write(SB.toString());
+			BW.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		SB = new StringBuffer();
+		try {
+			System.out.println("OVERRIDE TAGS");
+			BufferedWriter BW = new BufferedWriter(new FileWriter(config_t));
+			Set<String> ks = tagtc.keySet();
+			Iterator<String> it = ks.iterator();
+			while (it.hasNext()) {
+				String k = it.next();
+				ArrayList<String> type = tagtc.get(k).get(0);
+				ArrayList<String> constraint = tagtc.get(k).get(1);
+				String value = tagv.get(k);
+				for (int i = 0; i < type.size(); i++) {
+					SB.append(k + "\t" + type.get(i) + "\t" + constraint.get(i) + "\t" + value + "\n");
 				}
-			} else {
-				Set<String> ks = tagtc.keySet();
-				Iterator<String> it = ks.iterator();
-				while (it.hasNext()) {
-					String k = it.next();
-					ArrayList<String> type = tagtc.get(k).get(0);
-					ArrayList<String> constraint = tagtc.get(k).get(1);
-					String value = tagv.get(k);
-					for (int i = 0; i < type.size(); i++) {
-						SB.append(k + "\t" + type.get(i) + "\t" + constraint.get(i) + "\t" + value + "\n");
-					}
-				}
+				System.out.println(tagv);
 			}
 			BW.write(SB.toString());
 			BW.close();
@@ -597,7 +619,7 @@ public class Layout_Text extends JFrame {
 	}
 
 	public void addLog(String info, String time) {
-		LDTM.addRow(new String[] { info, time });
+		LDTM.addRow(new String[] { info.trim(), time });
 		scrollTo(log, log.getRowCount() - 1);
 	}
 
@@ -693,7 +715,7 @@ public class Layout_Text extends JFrame {
 			vs.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			panel_top_r0.add(new JLabel("TAG:"));
 			panel_top_r0.add(new JLabel("TYPE:"));
-			panel_top_r0.add(new JLabel("CONSTRAINT:"));
+			panel_top_r0.add(new JLabel("MATCH:"));
 			panel_top_r0.add(input_tag);
 			panel_top_r0.add(input_type);
 			panel_top_r0.add(input_constraint);
@@ -801,5 +823,10 @@ public class Layout_Text extends JFrame {
 
 	public boolean getMode() {
 		return mode;
+	}
+	
+	public int getDepth() {
+		int d = (int)input_depth.getValue();
+		return d+1;
 	}
 }

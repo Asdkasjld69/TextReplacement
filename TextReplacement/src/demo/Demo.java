@@ -35,7 +35,6 @@ public class Demo implements Runnable {
 		if(!config_path.exists()) {
 			config_path.mkdirs();
 		}
-		
 		FileOutputStream lck = new FileOutputStream(lock_flag);
 		FileLock lc = lck.getChannel().tryLock();         
 	    if(lc == null) {
@@ -84,8 +83,11 @@ public class Demo implements Runnable {
 		System.out.println("time lapse:"+(System.currentTimeMillis()-start)+"ms");*/
 	}
 	
-	public static ArrayList<File> iterFile(File file,String suffix) {
+	public static ArrayList<File> iterFile(File file,String suffix,int depth) {
 		ArrayList<File> fl = new ArrayList<File>();
+		if(depth<0) {
+			return fl;
+		}
 		if(file.isDirectory()) {
 			File[] files = file.listFiles(new FileFilter() {
 
@@ -104,7 +106,7 @@ public class Demo implements Runnable {
 					if(L.getStopflag()) {
 						break;
 					}
-					ArrayList<File> itl = iterFile(f,suffix);
+					ArrayList<File> itl = iterFile(f,suffix,depth-1);
 					fl.addAll(itl);
 				}
 			}
@@ -115,8 +117,11 @@ public class Demo implements Runnable {
 		return fl;
 	}
 	
-	public static ArrayList<File> iterFile(File file) {
+	public static ArrayList<File> iterFile(File file,int depth) {
 		ArrayList<File> fl = new ArrayList<File>();
+		if(depth<0) {
+			return fl;
+		}
 		if(file.isDirectory()) {
 			File[] files = file.listFiles();
 			if(files!=null) {
@@ -124,7 +129,7 @@ public class Demo implements Runnable {
 					if(L.getStopflag()) {
 						break;
 					}
-					ArrayList<File> itl = iterFile(f);
+					ArrayList<File> itl = iterFile(f,depth-1);
 					fl.addAll(itl);
 				}
 			}
@@ -135,8 +140,11 @@ public class Demo implements Runnable {
 		return fl;
 	}
 	
-	public static ArrayList<File> iterDir(File file) {
+	public static ArrayList<File> iterDir(File file,int depth) {
 		ArrayList<File> fl = new ArrayList<File>();
+		if(depth<0) {
+			return fl;
+		}
 		if(file.isDirectory()) {
 			fl.add(file);
 			File[] files = file.listFiles(new FileFilter() {
@@ -156,7 +164,7 @@ public class Demo implements Runnable {
 					if(L.getStopflag()) {
 						break;
 					}
-					ArrayList<File> itl = iterDir(f);
+					ArrayList<File> itl = iterDir(f,depth-1);
 					fl.addAll(itl);
 				}
 			}
@@ -175,10 +183,10 @@ public class Demo implements Runnable {
 		if(JOptionPane.showConfirmDialog(L,"<html>All Files following the <font color='red'><b>Regu</b></font> under <u>\""+path.getAbsolutePath()+"\"</u> will be checked recrusively!</html>","Are you sure?" ,JOptionPane.OK_OPTION)!=0) {
 			return;
 		}
-		L.overrideConfig();
 		L.setState(1);
-		ArrayList<File> files = iterFile(path,L.getRegu());
+		ArrayList<File> files = iterFile(path,L.getRegu(),L.getDepth());
 		L.commitChanges(files);
+		L.overrideConfig();
 		L.setState(0);
 	}
 

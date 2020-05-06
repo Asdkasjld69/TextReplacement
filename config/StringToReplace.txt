@@ -1,4 +1,4 @@
 .+.txt
-path
+C:\Users\cnmbx\Desktop\TextReplacement\path
 1	2
 2	1
