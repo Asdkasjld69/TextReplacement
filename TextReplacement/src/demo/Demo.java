@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 import javax.swing.JButton;
@@ -29,6 +30,7 @@ public class Demo implements Runnable {
 	private static File config_t = new File(config_path.getPath()+"/TagToReplace.txt");
 	private static File lock_flag = new File(config_path.getPath()+"/flag");
 	private static Layout_Text L = null;
+	private static boolean ABORT_FLAG = false;
 	
 	public static void main(String[] args) throws FileNotFoundException, IOException {
 		// TODO Auto-generated method stub
@@ -94,7 +96,18 @@ public class Demo implements Runnable {
 				@Override
 				public boolean accept(File pathname) {
 					// TODO Auto-generated method stub
-					if(pathname.isDirectory()||pathname.getName().matches(suffix)) {
+					if(ABORT_FLAG) {
+						return false;
+					}
+					boolean flag = false;
+					try {
+						flag = pathname.getName().matches(suffix);
+					}
+					catch(Exception e) {
+						ABORT_FLAG = true;
+						L.addLog("Regu Syntax Error #FAILED", new Date().toString());
+					}
+					if(pathname.isDirectory()||flag) {
 						return true;
 					}
 					return false;
@@ -175,6 +188,7 @@ public class Demo implements Runnable {
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
+		ABORT_FLAG = false;
 		File path = new File(L.getPath());
 		if(!path.exists()) {
 			JOptionPane.showConfirmDialog(L, "Non-existing path", "Error", JOptionPane.WARNING_MESSAGE);
@@ -184,7 +198,12 @@ public class Demo implements Runnable {
 			return;
 		}
 		L.setState(1);
+		L.applyConfig();
 		ArrayList<File> files = iterFile(path,L.getRegu(),L.getDepth());
+		if(ABORT_FLAG) {
+			L.setState(0);
+			return;
+		}
 		L.commitChanges(files);
 		L.overrideConfig();
 		L.setState(0);

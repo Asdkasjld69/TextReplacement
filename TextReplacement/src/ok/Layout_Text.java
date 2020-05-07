@@ -335,6 +335,9 @@ public class Layout_Text extends JFrame {
 					input_path.setText(cfs);
 					continue;
 				}
+				if(cfs.trim().isEmpty()) {
+					break;
+				}
 				String[] cs = cfs.split("\t");
 				srcs.add(cs[0]);
 				dests.add(cs[1]);
@@ -377,6 +380,11 @@ public class Layout_Text extends JFrame {
 
 	public Map<String, JButton> getActions() {
 		return buttons;
+	}
+	
+	public void applyConfig() {
+		setRegu(input_regu.getText());
+		setPath(input_path.getText());
 	}
 
 	public void commitChanges(ArrayList<File> files) {
@@ -829,4 +837,14 @@ public class Layout_Text extends JFrame {
 		int d = (int)input_depth.getValue();
 		return d+1;
 	}
+
+	public void setRegu(String regu) {
+		this.regu = regu;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+	
+	
 }

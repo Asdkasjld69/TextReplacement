@@ -95,7 +95,7 @@ public class StringReplacement {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
 				time = new Date();
-				log.append(F.getName()+" #FAILED!!!\t"+time.toString()+"\n");
+				log.append(F.getName()+" NOT READY #FAILED!!!\t"+time.toString()+"\n");
 				BR.close();
 				return log.toString();
 			}
