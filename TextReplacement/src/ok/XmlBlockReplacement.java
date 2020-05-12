@@ -25,6 +25,7 @@ public class XmlBlockReplacement {
 		BufferedWriter BW = null;
 		File backup = null;
 		StringBuffer log = new StringBuffer();
+		String filename = F.getAbsolutePath();
 		int rows=0;
 		Date time = new Date();
 		log.append(F.getName()+" #STARTED\t"+time.toString()+"\n");
@@ -102,7 +103,7 @@ public class XmlBlockReplacement {
 				SB.append(line+"\n");
 			}
 			BR.close();
-			File tmp = new File(F.getAbsolutePath().replace(".txt", "-NEW.txt"));
+			File tmp = new File(filename+".new");
 			BW = new BufferedWriter(new FileWriter(tmp));
 			BW.write(SB.toString());
 			BW.close();

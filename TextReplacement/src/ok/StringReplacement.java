@@ -29,6 +29,7 @@ public class StringReplacement {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
 		StringBuffer log = new StringBuffer();
+		String filename = F.getAbsolutePath();
 		int rows = 0;
 		int len = src.length>dest.length?src.length:dest.length;
 		File backup = null;
@@ -69,7 +70,7 @@ public class StringReplacement {
 				}
 				DSD.replace(0, DSD.getLength(), SB.toString(), null);
 				in.close();
-				File tmp = new File(F.getAbsolutePath().replace(".txt", "-NEW.txt"));
+				File tmp = new File(filename+".new");
 				OutputStream out = new FileOutputStream(tmp);
 				rtf.write(out, DSD,0, DSD.getLength());
 				out.close();
@@ -120,7 +121,7 @@ public class StringReplacement {
 				SB.append(line+"\n");
 			}
 			BR.close();
-			File tmp = new File(F.getAbsolutePath().replace(".txt", "-NEW.txt"));
+			File tmp = new File(filename+".new");
 			BW = new BufferedWriter(new FileWriter(tmp));
 			BW.write(SB.toString());
 			BW.close();

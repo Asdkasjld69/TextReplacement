@@ -52,92 +52,47 @@ public class Layout_Text extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private static String[] headers = { "Before", "After" };
-	private static String[] headers_t = { "Tag", "Type", "Constraint", "Value" };
-	private static String[] lheaders = { "Message", "Time" };
-	private String regu = "";
-	private String path = "path";
-	private File config_path = new File("config");
-	private File config_s = new File(config_path.getPath() + "/StringToReplace.txt");
-	private File config_t = new File(config_path.getPath() + "/TagToReplace.txt");
-	private DefaultTableModel DTM = new DefaultTableModel(null, headers);
-	private DefaultTableModel DTM_T = new DefaultTableModel(null, headers_t);
-	private DefaultTableModel LDTM = new DefaultTableModel(null, lheaders) {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void setValueAt(Object aValue, int row, int column) {
-			// TODO Auto-generated method stub
-			return;
-		}
-
-	};
+	private static final String[] headers = { "Before", "After" };
+	private static final String[] headers_t = { "Tag", "Type", "Match", "Value" };
+	private static final String[] lheaders = { "Message", "Time" };
+	private static Map<String,String> signs;
+	private String regu;
+	private String path;
+	private File config_path;
+	private File config;
+	private DefaultTableModel DTM;
+	private DefaultTableModel DTM_T;
+	private DefaultTableModel LDTM;
 	private ArrayList<String> srcs = new ArrayList<String>();
 	private ArrayList<String> dests = new ArrayList<String>();
-	private HashMap<String, ArrayList<ArrayList<String>>> tagtc = new HashMap<String, ArrayList<ArrayList<String>>>();
+	private HashMap<String, ArrayList<ArrayList<String>>> tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
 	private HashMap<String, String> tagv = new HashMap<String, String>();
 	private JTextField input_regu = new JTextField(32);
 	private JTextField input_path = new JTextField();
-	private JSpinner input_depth = new JSpinner(new SpinnerNumberModel(0,0,100,1));
-	private JTable body = new JTable(DTM);
-	private JTable log = new JTable(LDTM) {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-			// TODO Auto-generated method stub
-			Component comp = super.prepareRenderer(renderer, row, column);
-			comp.setBackground(new Color(255, 255, 255));
-			comp.setForeground(new Color(0, 0, 0));
-			String[] mess = LDTM.getValueAt(row, 0).toString().split("#");
-			if (mess.length > 0) {
-				if (mess[mess.length - 1].equals("COMMIT")) {
-					comp.setBackground(new Color(255, 96, 255));
-				}
-				if (mess[mess.length - 1].equals("STARTED")) {
-					comp.setBackground(new Color(128, 196, 255));
-				}
-				if (mess[mess.length - 1].contains("FINISHED")) {
-					comp.setBackground(new Color(128, 255, 128));
-				}
-				if (mess[mess.length - 1].contains("FAILED")) {
-					comp.setBackground(new Color(255, 96, 96));
-					comp.setForeground(new Color(255, 255, 255));
-				}
-			}
-			return comp;
-		}
-
-	};
-	JScrollPane panel_body = new JScrollPane(body);
-	JScrollPane panel_log = new JScrollPane(log);
-	JPanel panel_top = new JPanel();
-	JPanel panel_main = new JPanel();
-	JPanel panel_left = new JPanel();
-	private Map<String, JButton> buttons = new HashMap<String, JButton>();
-	private Dimension size = new Dimension(716, 400);
-	private double ratio = 0.4;
-	private JDialog dialog_about = new JDialog();
-	private JDialog error = new JDialog();
-	JLabel intro = new JLabel(
-			"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
-	private JCheckBox check_safe = new JCheckBox("Safe");
+	private JSpinner input_depth;
+	private JTable body;
+	private JTable log;
+	private JScrollPane panel_body;
+	private JScrollPane panel_log;
+	private JPanel panel_top;
+	private JPanel panel_main;
+	private JPanel panel_left;
+	private Map<String, JButton> buttons;
+	private Dimension size;
+	private double ratio;
+	private JDialog dialog_about;
+	private JDialog error;
+	private JLabel intro;
+	private JCheckBox check_safe;
 	int height_top;
-	private boolean stopflag = false;
-	private int state = 0;
-	private boolean mode = true;
-	public static long LAUNCH_TIME = System.currentTimeMillis();
+	private boolean stopflag;
+	private int state;
+	private boolean mode;
+	public static long LAUNCH_TIME;
 
 	public Layout_Text() {
 		super();
+		init();
 		JMenuBar mbar = new JMenuBar();
 		JButton about = new JButton("About");
 		JButton switchmode = new JButton("TEXT");
@@ -213,7 +168,7 @@ public class Layout_Text extends JFrame {
 		drag.setCursor(cu);
 		panel_bottom.add(label_regu);
 		panel_bottom.add(input_regu);
-		panel_bottom.add(new JLabel("depth:"));
+		panel_bottom.add(new JLabel("Depth:"));
 		panel_bottom.add(input_depth);
 		panel_bottom.add(check_safe);
 		panel_left.add(panel_log);
@@ -298,81 +253,181 @@ public class Layout_Text extends JFrame {
 		// this.setResizable(false);
 	}
 
+	private void init() {
+		// TODO Auto-generated method stub
+		signs = new HashMap<String,String>();
+		signs.put("<", "&lt;");
+		signs.put(">", "&gt;");
+		signs.put("&", "&amp;");
+		signs.put("'", "&apos;");
+		signs.put("\"", "&quot;");
+		regu = "";
+		path = "path";
+		config_path = new File("config");
+		config = new File(config_path.getPath() + "/config.xml");
+		DTM = new DefaultTableModel(null, headers);
+		DTM_T = new DefaultTableModel(null, headers_t);
+		LDTM = new DefaultTableModel(null, lheaders) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void setValueAt(Object aValue, int row, int column) {
+				// TODO Auto-generated method stub
+				return;
+			}
+
+		};
+		srcs = new ArrayList<String>();
+		dests = new ArrayList<String>();
+		tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
+		tagv = new HashMap<String, String>();
+		input_regu = new JTextField(32);
+		input_path = new JTextField();
+		input_depth = new JSpinner(new SpinnerNumberModel(0,0,100,1));
+		body = new JTable(DTM);
+		log = new JTable(LDTM) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+				// TODO Auto-generated method stub
+				Component comp = super.prepareRenderer(renderer, row, column);
+				comp.setBackground(new Color(255, 255, 255));
+				comp.setForeground(new Color(0, 0, 0));
+				String[] mess = LDTM.getValueAt(row, 0).toString().split("#");
+				if (mess.length > 0) {
+					if (mess[mess.length - 1].equals("COMMIT")) {
+						comp.setBackground(new Color(255, 96, 255));
+					}
+					if (mess[mess.length - 1].equals("STARTED")) {
+						comp.setBackground(new Color(128, 196, 255));
+					}
+					if (mess[mess.length - 1].contains("FINISHED")) {
+						comp.setBackground(new Color(128, 255, 128));
+					}
+					if (mess[mess.length - 1].contains("FAILED")) {
+						comp.setBackground(new Color(255, 96, 96));
+						comp.setForeground(new Color(255, 255, 255));
+					}
+				}
+				return comp;
+			}
+
+		};
+		panel_body = new JScrollPane(body);
+		panel_log = new JScrollPane(log);
+		panel_top = new JPanel();
+		panel_main = new JPanel();
+		panel_left = new JPanel();
+		buttons = new HashMap<String, JButton>();
+		size = new Dimension(716, 400);
+		ratio = 0.4;
+		dialog_about = new JDialog();
+		error = new JDialog();
+		intro = new JLabel(
+				"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
+		check_safe = new JCheckBox("Safe");
+		stopflag = false;
+		state = 0;
+		mode = true;
+		LAUNCH_TIME = System.currentTimeMillis();
+	}
+
 	public void loadConfig() {
-		if (!config_s.exists()) {
+		if (!config.exists()) {
 			try {
-				config_s.createNewFile();
+				config.createNewFile();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		if (!config_t.exists()) {
-			try {
-				config_t.createNewFile();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		String[] conf = TextDataReader.read(config);
+		System.out.println(conf[0]);
+		String config = conf[0];
+		ArrayList<String> temp = null;
+		ArrayList<String> temp2 = null;
+		ArrayList<String> temp3 = null;
+		temp = scanTag("regu",config,false);
+		if(temp != null) {
+			regu = convertToString(temp.get(0));
+		}
+		temp = scanTag("path",config,false);
+		if(temp != null) {
+			path = convertToString(temp.get(0));
+		}
+		temp = scanTag("text",config,false);
+		if(temp != null) {
+			temp2 = scanTag("item",temp.get(0),false);
+			if(temp2!=null) {
+				for(String item:temp2) {
+					temp3 = scanTag("from",item,false);
+					if(temp3!=null) {
+						srcs.add(convertToString(temp3.get(0)));
+					}
+					temp3 = scanTag("to",item,false);
+					if(temp3!=null) {
+						dests.add(convertToString(temp3.get(0)));
+					}
+					else {
+						dests.add("");
+					}
+				}
 			}
 		}
-		String[] conf = TextDataReader.read(config_s);
-		String[] conf_t = TextDataReader.read(config_t);
-		boolean reguflag = true;
-		boolean pathflag = true;
-		if (conf[0].length() > 0) {
-			String[] confs = conf[0].split("\n");
-			System.out.println("======================================");
-			for (String cfs : confs) {
-				if (reguflag) {
-					reguflag = false;
-					regu = cfs;
-					input_regu.setText(cfs);
-					continue;
+		
+		temp = scanTag("tag",config,false);
+		ArrayList<String> temp4 = null;
+		ArrayList<String> temp5 = null;
+		if(temp!=null) {
+			temp2 = scanTag("item",temp.get(0),false);
+			if(temp2!=null) {
+				for(String item:temp2) {
+					temp3 = scanTag("target",item);
+					if(temp3 != null) {
+						temp4 = scanTag("constraint",item,false);
+						ArrayList<ArrayList<String>> ttm = new ArrayList<ArrayList<String>>();
+						ArrayList<String> tt = new ArrayList<String>();
+						ArrayList<String> tm = new ArrayList<String>();
+						if(temp4 != null) {
+							for(String constraint:temp4) {
+								temp5 = scanTag("type",constraint,false);
+								if(temp5 != null) {
+									tt.add(convertToString((temp5.get(0))));
+									temp5 = scanTag("match",constraint,false);
+									tm.add(temp5==null?"":convertToString((temp5.get(0))));
+								}
+								else {
+									tt.add("1");
+									tm.add("");
+								}
+							}
+						}
+						else {
+							tt.add("1");
+							tm.add("");
+						}
+						ttm.add(tt);
+						ttm.add(tm);
+						tagtm.put(convertToString(scanTag("target",temp3.get(0),false).get(0)), ttm);
+						temp4 = scanTag("value",item,false);
+						tagv.put(convertToString(scanTag("target",temp3.get(0),false).get(0)), temp4.get(0)==null?"":temp4.get(0));
+					}
 				}
-				if (pathflag) {
-					pathflag = false;
-					path = cfs;
-					input_path.setText(cfs);
-					continue;
-				}
-				if(cfs.trim().isEmpty()) {
-					break;
-				}
-				String[] cs = cfs.split("\t");
-				srcs.add(cs[0]);
-				dests.add(cs[1]);
-				addChange(cs[0], cs[1]);
-				System.out.println("[" + cs[0] + " -> " + cs[1] + "]");
-			}
-			System.out.println("======================================");
-		}
-		System.out.println(conf_t[0]);
-		if (conf_t[0].length() > 0) {
-			String[] confs_t = conf_t[0].split("\n");
-			System.out.println("======================================");
-			for (String cfs : confs_t) {
-				String[] cs = cfs.split("\t");
-				ArrayList<ArrayList<String>> ttc = new ArrayList<ArrayList<String>>();
-				ArrayList<String> tt = new ArrayList<String>();
-				ArrayList<String> tc = new ArrayList<String>();
-				ttc.add(tt);
-				ttc.add(tc);
-				tagtc.put(cs[0], ttc);
-				tagv.put(cs[0], cs.length<4?"":cs[3]);
-			}
-			for (String cfs : confs_t) {
-				String[] cs = cfs.split("\t");
-				ArrayList<String> tt = tagtc.get(cs[0]).get(0);
-				ArrayList<String> tc = tagtc.get(cs[0]).get(1);
-				tt.add(cs[1]);
-				tc.add(cs[2]);
-				System.out.println(tagtc);
-				System.out.println(tagv);
-				addChange_t(cs[0], cs[1], cs[2], cs.length<4?"":cs[3]);
 			}
 		}
-		String[] logs = conf[1].concat(conf_t[1]).split("\n");
-		for (String l : logs) {
+		
+		loadInputs();
+		
+		for (String l : conf[1].split("\n")) {
 			String[] log = l.split("\t");
 			addLog(l.replace(log[log.length-1], ""), log[log.length-1]);
 		}
@@ -385,6 +440,28 @@ public class Layout_Text extends JFrame {
 	public void applyConfig() {
 		setRegu(input_regu.getText());
 		setPath(input_path.getText());
+		
+	}
+	
+	public void loadInputs() {
+		input_path.setText(path);
+		input_regu.setText(regu);
+		for(int i=0;i<srcs.size();i++) {
+			addChange(srcs.get(i),dests.get(i));
+		}
+		Set<String> ks = tagtm.keySet();
+		Iterator<String> it = ks.iterator();
+		String stemp;
+		ArrayList<String> temp;
+		ArrayList<String> temp2;
+		while(it.hasNext()) {
+			stemp = it.next();
+			temp = tagtm.get(stemp).get(0);
+			temp2 = tagtm.get(stemp).get(1);
+			for(int i=0;i<temp.size();i++) {
+				addChange_t(stemp,temp.get(i),temp2.get(i),tagv.get(stemp));
+			}
+		}
 	}
 
 	public void commitChanges(ArrayList<File> files) {
@@ -414,17 +491,17 @@ public class Layout_Text extends JFrame {
 		} else {
 			XmlBlockReplacement.setSerial(System.currentTimeMillis());
 			rows = DTM_T.getRowCount();
-			tagtc = new HashMap<String, ArrayList<ArrayList<String>>>();
+			tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
 			for (int i = 0; i < rows; i++) {
 				ArrayList<ArrayList<String>> tca = new ArrayList<ArrayList<String>>();
 				ArrayList<String> ta = new ArrayList<String>();
 				ArrayList<String> ca = new ArrayList<String>();
 				tca.add(ta);
 				tca.add(ca);
-				tagtc.put(DTM_T.getValueAt(i, 0).toString(), tca);
+				tagtm.put(DTM_T.getValueAt(i, 0).toString(), tca);
 			}
 			for (int i = 0; i < rows; i++) {
-				ArrayList<ArrayList<String>> tca = tagtc.get(DTM_T.getValueAt(i, 0).toString());
+				ArrayList<ArrayList<String>> tca = tagtm.get(DTM_T.getValueAt(i, 0).toString());
 				ArrayList<String> ta = tca.get(0);
 				ArrayList<String> ca = tca.get(1);
 				ta.add(DTM_T.getValueAt(i, 1).toString());
@@ -432,7 +509,7 @@ public class Layout_Text extends JFrame {
 				tagv.put(DTM_T.getValueAt(i, 0).toString(), DTM_T.getValueAt(i, 3).toString());
 			}
 			for (File file : files) {
-				Set<String> ks = tagtc.keySet();
+				Set<String> ks = tagtm.keySet();
 				String k = "";
 				Iterator<String> it = ks.iterator();
 				ArrayList<Object[]> tar = new ArrayList<Object[]>();
@@ -443,9 +520,9 @@ public class Layout_Text extends JFrame {
 					k = it.next();
 					ta = new ArrayList<String>();
 					ta.add(k);
-					ta.addAll(1, tagtc.get(k).get(0));
+					ta.addAll(1, tagtm.get(k).get(0));
 					tar.add(ta.toArray());
-					ta = tagtc.get(k).get(1);
+					ta = tagtm.get(k).get(1);
 					car.add(ta.toArray());
 					var.add(tagv.get(k));
 				}
@@ -466,51 +543,53 @@ public class Layout_Text extends JFrame {
 	public void overrideConfig() {
 		regu = input_regu.getText();
 		StringBuffer SB = new StringBuffer();
-		if (!config_s.exists()) {
+		BufferedWriter BW = null;
+		if (!config.exists()) {
 			try {
-				config_s.createNewFile();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		if (!config_t.exists()) {
-			try {
-				config_t.createNewFile();
+				config.createNewFile();
+
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		try {
-			BufferedWriter BW = new BufferedWriter(new FileWriter(config_s));
-			SB.append(regu + "\n");
-			SB.append(path + "\n");
+			BW = new BufferedWriter(new FileWriter(config));
+			SB.append("<config>");
+			SB.append("<regu>" + convertToXML(regu) + "</regu>");
+			SB.append("<path>" + convertToXML(path) + "</path>");
+			System.out.println("OVERRIDE TEXT");
+			SB.append("<text>");
 			for (int i = 0; i < srcs.size(); i++) {
-				SB.append(srcs.get(i) + "\t" + dests.get(i) + "\n");
+				SB.append("<item>");
+				SB.append("<from>" + convertToXML(srcs.get(i)) + "</from>");
+				SB.append("<to>" + convertToXML(dests.get(i)) + "</to>");
+				SB.append("</item>");
 			}
-			BW.write(SB.toString());
-			BW.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		SB = new StringBuffer();
-		try {
+			SB.append("</text>");
 			System.out.println("OVERRIDE TAGS");
-			BufferedWriter BW = new BufferedWriter(new FileWriter(config_t));
-			Set<String> ks = tagtc.keySet();
+			SB.append("<tag>");
+			Set<String> ks = tagtm.keySet();
 			Iterator<String> it = ks.iterator();
 			while (it.hasNext()) {
 				String k = it.next();
-				ArrayList<String> type = tagtc.get(k).get(0);
-				ArrayList<String> constraint = tagtc.get(k).get(1);
+				ArrayList<String> type = tagtm.get(k).get(0);
+				ArrayList<String> match = tagtm.get(k).get(1);
 				String value = tagv.get(k);
+				SB.append("<item>");
+				SB.append("<target>"+ convertToXML(k) + "</target>");
 				for (int i = 0; i < type.size(); i++) {
-					SB.append(k + "\t" + type.get(i) + "\t" + constraint.get(i) + "\t" + value + "\n");
+					SB.append("<constraint>");
+					SB.append("<type>"+ convertToXML(type.get(i)) + "</type>");
+					SB.append("<match>"+ convertToXML(match.get(i)) + "</match>");
+					SB.append("</constraint>");
 				}
-				System.out.println(tagv);
+				SB.append("<value>"+convertToXML(value)+"</value>");
+				SB.append("</item>");
 			}
+			SB.append("</tag>");
+			SB.append("</config>");
+			System.out.println(SB.toString());
 			BW.write(SB.toString());
 			BW.close();
 		} catch (IOException e) {
@@ -827,6 +906,63 @@ public class Layout_Text extends JFrame {
 		int y = panel_top.getY() + panel_top.getHeight();
 		panel_body.setLocation(x, y);
 		panel_left.setPreferredSize(new Dimension((int) (mwidth * ratio), panel_log.getHeight()));
+	}
+	
+	public ArrayList<String> scanTag(String tag, String src) {
+		ArrayList<String> ret = new ArrayList<String>();
+		String rets = src;
+		String target_s = "<"+tag+">";
+		String target_e = "</"+tag+">";
+		while(rets.contains(target_s)&&rets.contains(target_e)) {
+			int start = rets.indexOf(target_s);
+			int end = start+rets.substring(start).indexOf(target_e);
+			if(start>-1 && start<=end) {
+				ret.add(rets.substring(start, end+target_e.length()+1));
+			}
+			rets = rets.substring(end+target_e.length()+1);
+		}
+		return ret.size()>0?ret:null;
+	}
+	
+	public ArrayList<String> scanTag(String tag, String src, boolean keep) {
+		ArrayList<String> ret = new ArrayList<String>();
+		String rets = src;
+		String target_s = "<"+tag+">";
+		String target_e = "</"+tag+">";
+		while(rets.contains(target_s)&&rets.contains(target_e)) {
+			System.out.println(tag);
+			int start = rets.indexOf(target_s);
+			int end = start+rets.substring(start).indexOf(target_e);
+			if(start>-1 && start<=end) {
+				ret.add(rets.substring(start+(keep?0:target_s.length()), end+(keep?target_e.length()+1:0)));
+			}
+			rets = rets.substring(end+target_e.length());
+		}
+		return ret.size()>0?ret:null;
+	}
+	
+	public static String convertToXML(String s) {
+		String ret = s;
+		Set<String> ks = signs.keySet();
+		Iterator<String> it = ks.iterator();
+		String sign = "";
+		while(it.hasNext()) {
+			sign = it.next();
+			ret = ret.replace(sign, signs.get(sign));
+		}
+		return ret;
+	}
+	
+	public static String convertToString(String s) {
+		String ret = s;
+		Set<String> ks = signs.keySet();
+		Iterator<String> it = ks.iterator();
+		String sign = "";
+		while(it.hasNext()) {
+			sign = it.next();
+			ret = ret.replace(signs.get(sign),sign);
+		}
+		return ret;
 	}
 
 	public boolean getMode() {

@@ -26,8 +26,7 @@ import ok.Layout_Text;
 public class Demo implements Runnable {
 	public static String title = "Replace Text";
 	private static File config_path = new File("config");
-	private static File config_s = new File(config_path.getPath()+"/StringToReplace.txt");
-	private static File config_t = new File(config_path.getPath()+"/TagToReplace.txt");
+	private static File config = new File(config_path.getPath()+"/config.xml");
 	private static File lock_flag = new File(config_path.getPath()+"/flag");
 	private static Layout_Text L = null;
 	private static boolean ABORT_FLAG = false;
@@ -58,31 +57,6 @@ public class Demo implements Runnable {
 	 
 	    L = new Layout_Text();
 		L.loadConfig();
-		Map<String, JButton> buttons = L.getActions();		
-		
-		/*
-		System.out.println("================BLOCK=================");
-		String[][] tag = {{"Controller","1","1","1","1","not"},{"Node","1","1"},{"Controller",""}};
-		Object[][] src2 = {{"filterType=\"pos\"","filterType=\"posx\"","filterType=\"posy\"","filterType=\"posz\"","Bone_Spine"},{"name=\"Bone0","name=\"Protag\""},{"filterType=\"scale\""}};
-		Object[] dest2 = {"","",""};
-		for(File file:files) {
-			XmlBlockReplacement.replace(file, tag , src2, dest2);
-		}
-		*/
-		
-		/*
-		File[] rts = File.listRoots();
-		long start = System.currentTimeMillis();
-		for(File rt:rts) {
-			System.out.println(rt.getAbsolutePath());
-			ArrayList<File> fs = iterDir(rt);
-			if(!fs.isEmpty()) {
-				for(File f:fs) {
-					System.out.println(f.getAbsolutePath());
-				}
-			}
-		}
-		System.out.println("time lapse:"+(System.currentTimeMillis()-start)+"ms");*/
 	}
 	
 	public static ArrayList<File> iterFile(File file,String suffix,int depth) {

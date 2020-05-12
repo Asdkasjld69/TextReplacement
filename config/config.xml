@@ -1,0 +1,1 @@
+<config><regu>.+.txt</regu><path>C:\Users\cnmbx\Desktop\Text_Replacement\path</path><text><item><from>aaa</from><to>aaa</to></item></text><tag><item><target>tag</target><constraint><type>1</type><match>111</match></constraint><constraint><type>not</type><match>sss</match></constraint><value></value></item></tag></config>
