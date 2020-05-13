@@ -30,10 +30,13 @@ import java.util.Set;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
@@ -43,6 +46,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 
 import demo.Demo;
 
@@ -53,7 +57,9 @@ public class Layout_Text extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private static final String[] headers = { "Before", "After" };
 	private static final String[] headers_t = { "Tag", "Type", "Match", "Value" };
+	private static final String[] headers_f = { "Before", "After", "Index"};
 	private static final String[] lheaders = { "Message", "Time" };
+	private static final String[] modes = {"Text","Tag","Filename"};
 	private static Map<String,String> signs;
 	private String regu;
 	private String path;
@@ -61,9 +67,12 @@ public class Layout_Text extends JFrame {
 	private File config;
 	private DefaultTableModel DTM;
 	private DefaultTableModel DTM_T;
+	private DefaultTableModel DTM_F;
 	private DefaultTableModel LDTM;
-	private ArrayList<String> srcs;
-	private ArrayList<String> dests;
+	private ArrayList<Object> srcs;
+	private ArrayList<Object> dests;
+	private ArrayList<Object[]> srcs_f;
+	private ArrayList<Object> dests_f;
 	private HashMap<String, ArrayList<ArrayList<String>>> tagtm;
 	private HashMap<String, String> tagv;
 	private JTextField input_regu;
@@ -87,7 +96,7 @@ public class Layout_Text extends JFrame {
 	private double sizeThreshold;
 	private boolean stopflag;
 	private int state;
-	private boolean mode;
+	private int mode;
 	public static long LAUNCH_TIME;
 
 	public Layout_Text() {
@@ -109,6 +118,33 @@ public class Layout_Text extends JFrame {
 		config = new File(config_path.getPath() + "/config.xml");
 		DTM = new DefaultTableModel(null, headers);
 		DTM_T = new DefaultTableModel(null, headers_t);
+		DTM_F = new DefaultTableModel(null, headers_f) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 5590360337000050184L;
+
+			@Override
+			public void setValueAt(Object aValue, int row, int column) {
+				// TODO Auto-generated method stub
+				String val = aValue.toString();
+				if(this.getColumnName(column).equals("Index")&&val!=null&&!val.equals("")) {
+					try {
+						Integer.parseInt(val);
+					}
+					catch(Exception e) {
+						return;
+					}
+					super.setValueAt(aValue, row, column);
+				}
+				else {
+					super.setValueAt(aValue, row, column);
+				}
+			}
+			
+			
+		};
 		LDTM = new DefaultTableModel(null, lheaders) {
 
 			/**
@@ -123,8 +159,10 @@ public class Layout_Text extends JFrame {
 			}
 
 		};
-		srcs = new ArrayList<String>();
-		dests = new ArrayList<String>();
+		srcs = new ArrayList<Object>();
+		dests = new ArrayList<Object>();
+		srcs_f = new ArrayList<Object[]>();
+		dests_f = new ArrayList<Object>();
 		tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
 		tagv = new HashMap<String, String>();
 		input_regu = new JTextField(20);
@@ -147,16 +185,17 @@ public class Layout_Text extends JFrame {
 				comp.setForeground(new Color(0, 0, 0));
 				String[] mess = LDTM.getValueAt(row, 0).toString().split("#");
 				if (mess.length > 0) {
-					if (mess[mess.length - 1].equals("COMMIT")) {
+					String message = mess[mess.length-1];
+					if (message.equals("COMMIT")) {
 						comp.setBackground(new Color(255, 96, 255));
 					}
-					if (mess[mess.length - 1].equals("STARTED")) {
+					if (message.contains("STARTED")) {
 						comp.setBackground(new Color(128, 196, 255));
 					}
-					if (mess[mess.length - 1].contains("FINISHED")) {
+					if (message.contains("FINISHED")) {
 						comp.setBackground(new Color(128, 255, 128));
 					}
-					if (mess[mess.length - 1].contains("FAILED")) {
+					if (message.contains("FAILED")) {
 						comp.setBackground(new Color(255, 96, 96));
 						comp.setForeground(new Color(255, 255, 255));
 					}
@@ -180,33 +219,57 @@ public class Layout_Text extends JFrame {
 		sizeThreshold = 1;
 		stopflag = false;
 		state = 0;
-		mode = true;
+		mode = 0;
 		LAUNCH_TIME = System.currentTimeMillis();
 		JMenuBar mbar = new JMenuBar();
 		JButton about = new JButton("About");
-		JButton switchmode = new JButton("TEXT");
-		switchmode.setPreferredSize(switchmode.getMinimumSize());
-		switchmode.addActionListener(new ActionListener() {
+		JMenu switchmode = new JMenu("Mode");
+		ActionListener mode_action = new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				mode = !mode;
-				if (!mode) {
-					switchmode.setText("TAG");
-					loadTopPanel("tag");
-					body.setModel(DTM_T);
-					setTitle("Replace Tag");
-				} else {
-					switchmode.setText("TEXT");
+				mode = Integer.parseInt(e.getActionCommand());
+				switch(mode) {
+				case 0:
 					loadTopPanel("text");
 					body.setModel(DTM);
-					setTitle("Replace Text");
+					setTitle("Replace Text");break;
+				case 1:
+					loadTopPanel("tag");
+					body.setModel(DTM_T);
+					setTitle("Replace Tag");break;
+				case 2:
+					loadTopPanel("filename");
+					body.setModel(DTM_F);
+					setTitle("Replace Filename");break;
 				}
-				
+				for(int i=0;i<switchmode.getItemCount();i++) {
+					if(i==mode) {
+						switchmode.getItem(i).setText("*"+modes[i]+"*");
+					}
+					else {
+						switchmode.getItem(i).setText(modes[i]);
+					}
+				}
+				panel_top.revalidate();
 			}
 
-		});
+		};
+		for(int i=0;i<modes.length;i++) {
+			JMenuItem mode_temp = new JMenuItem(modes[i]);
+			mode_temp.setActionCommand(String.valueOf(i));
+			switchmode.add(mode_temp);
+			mode_temp.addActionListener(mode_action);
+		}
+		for(int i=0;i<switchmode.getItemCount();i++) {
+			if(i==mode) {
+				switchmode.getItem(i).setText("*"+modes[i]+"*");
+			}
+			else {
+				switchmode.getItem(i).setText(modes[i]);
+			}
+		}
 		about.setBackground(new Color(238, 238, 238));
 		switchmode.setBackground(new Color(112, 204, 255));
 		about.addActionListener(new ActionListener() {
@@ -232,9 +295,9 @@ public class Layout_Text extends JFrame {
 		dialog_about.add(new JLabel("5sfPA3m"));
 		dialog_about.add(new JLabel("<html><b>*Word&Excel not supported (yet)*</b></html>"));
 		mbar.add(switchmode);
-		mbar.add(about);
 		mbar.add(new JLabel("PATH:"));
 		mbar.add(input_path);
+		mbar.add(about);
 		this.setJMenuBar(mbar);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setTitle(Demo.title);
@@ -427,12 +490,25 @@ public class Layout_Text extends JFrame {
 				}
 			}
 		}
+		temp = scanTag("filename",config,false);
+		if(temp!=null) {
+			temp2 = scanTag("item",temp.get(0),false);
+			if(temp2!=null) {
+				for(String item:temp2) {
+					temp3 = scanTag("from",item,false);
+					temp4 = scanTag("index",item,false);
+					srcs_f.add(new Object[] {temp3!=null?convertToString(temp3.get(0)):"",temp4!=null?temp4.get(0):""});
+					temp3 = scanTag("to",item,false);
+					dests_f.add(temp3!=null?convertToString(temp3.get(0)):"");
+				}
+			}
+		}
 		
 		loadInputs();
 		
 		for (String l : conf[1].split("\n")) {
 			String[] log = l.split("\t");
-			addLog(l.replace(log[log.length-1], ""), log[log.length-1]);
+			addRow(new String[] {l.substring(0, l.indexOf(log[log.length-1])).trim(), log[log.length-1]},LDTM,this.log);
 		}
 	}
 
@@ -450,7 +526,7 @@ public class Layout_Text extends JFrame {
 		input_path.setText(path);
 		input_regu.setText(regu);
 		for(int i=0;i<srcs.size();i++) {
-			addChange(srcs.get(i),dests.get(i));
+			addRow(new String[] {(String) srcs.get(i),(String) dests.get(i)},DTM,body);
 		}
 		Set<String> ks = tagtm.keySet();
 		Iterator<String> it = ks.iterator();
@@ -462,21 +538,26 @@ public class Layout_Text extends JFrame {
 			temp = tagtm.get(stemp).get(0);
 			temp2 = tagtm.get(stemp).get(1);
 			for(int i=0;i<temp.size();i++) {
-				addChange_t(stemp,temp.get(i),temp2.get(i),tagv.get(stemp));
+				addRow(new String[] {stemp,temp.get(i),temp2.get(i),tagv.get(stemp)},DTM_T,body);
 			}
+		}
+		for(int i=0;i<srcs_f.size();i++) {
+			Object[] cons = srcs_f.get(i);
+			addRow(new String[] {(String) cons[0],(String) dests_f.get(i),cons.length>1?(String) cons[1]:""},DTM_F,body);
 		}
 	}
 
 	public void commitChanges(ArrayList<File> files) {
 		String log = "START #COMMIT";
 		Date time = new Date();
-		addLog(log, time.toString());
+		addRow(new String[] {log, time.toString()},LDTM,this.log);
 		int rows = 0;
-		if (mode) {
+		switch(mode) {
+		case 0:
 			StringReplacement.setSerial(System.currentTimeMillis());
 			rows = DTM.getRowCount();
-			srcs = new ArrayList<String>();
-			dests = new ArrayList<String>();
+			srcs.clear();
+			dests.clear();
 			for (int i = 0; i < rows; i++) {
 				srcs.add(DTM.getValueAt(i, 0).toString());
 				dests.add(DTM.getValueAt(i, 1).toString());
@@ -488,13 +569,14 @@ public class Layout_Text extends JFrame {
 				String[] lo = log.split("\n");
 				for (String l : lo) {
 					String[] m = l.split("\t");
-					addLog(l.replace(m[m.length-1], ""), m[m.length-1]);
+					addRow(new String[] {l.substring(0, l.indexOf(m[m.length-1])).trim(), m[m.length-1]},LDTM,this.log);
 				}
 			}
-		} else {
+			break;
+		case 1:
 			XmlBlockReplacement.setSerial(System.currentTimeMillis());
 			rows = DTM_T.getRowCount();
-			tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
+			tagtm.clear();
 			for (int i = 0; i < rows; i++) {
 				ArrayList<ArrayList<String>> tca = new ArrayList<ArrayList<String>>();
 				ArrayList<String> ta = new ArrayList<String>();
@@ -533,14 +615,40 @@ public class Layout_Text extends JFrame {
 				String[] lo = log.split("\n");
 				for (String l : lo) {
 					String[] m = l.split("\t");
-					addLog(l.replace(m[m.length-1], ""), m[m.length-1]);
+					addRow(new String[] {l.substring(0, l.indexOf(m[m.length-1])).trim(), m[m.length-1]},LDTM,this.log);
 				}
 			}
+			break;
+		case 2:
+			FilenameReplacement.setSerial(System.currentTimeMillis());
+			rows = DTM_F.getRowCount();
+			srcs_f.clear();
+			dests_f.clear();
+			for(int i=0;i<rows;i++) {
+				String before = (String) DTM_F.getValueAt(i, 0);
+				String after = (String) DTM_F.getValueAt(i, 1);
+				String index = (String) DTM_F.getValueAt(i, 2);
+				if(index!=null&&!index.trim().isEmpty()) {
+					srcs_f.add(new Object[] {before,index});
+				}
+				else {
+					srcs_f.add(new Object[] {before});
+				}
+				dests_f.add(after);	
+			}
+			for(File file:files) {
+				log = FilenameReplacement.replace(file, srcs_f, dests_f, check_safe.isSelected());
+				String[] lo = log.split("\n");
+				for (String l : lo) {
+					String[] m = l.split("\t");
+					addRow(new String[] {l.substring(0, l.indexOf(m[m.length-1])).trim(), m[m.length-1]},LDTM,this.log);
+				}
+			}
+			break;
 		}
-
 		log = "END #COMMIT";
 		time = new Date();
-		addLog(log, time.toString());
+		addRow(new String[] {log, time.toString()},LDTM,this.log);
 	}
 
 	public void overrideConfig() {
@@ -550,7 +658,6 @@ public class Layout_Text extends JFrame {
 		if (!config.exists()) {
 			try {
 				config.createNewFile();
-
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -565,8 +672,8 @@ public class Layout_Text extends JFrame {
 			SB.append("<text>");
 			for (int i = 0; i < srcs.size(); i++) {
 				SB.append("<item>");
-				SB.append("<from>" + convertToXML(srcs.get(i)) + "</from>");
-				SB.append("<to>" + convertToXML(dests.get(i)) + "</to>");
+				SB.append("<from>" + convertToXML((String) srcs.get(i)) + "</from>");
+				SB.append("<to>" + convertToXML((String) dests.get(i)) + "</to>");
 				SB.append("</item>");
 			}
 			SB.append("</text>");
@@ -591,6 +698,17 @@ public class Layout_Text extends JFrame {
 				SB.append("</item>");
 			}
 			SB.append("</tag>");
+			SB.append("<filename>");
+			for(int i=0;i<srcs_f.size();i++) {
+				SB.append("<item>");
+				SB.append("<from>"+convertToXML((String) srcs_f.get(i)[0])+"</from>");
+				if(srcs_f.get(i).length>1) {
+					SB.append("<index>"+convertToXML((String) srcs_f.get(i)[1])+"</index>");
+				}
+				SB.append("<to>"+convertToXML((String) dests_f.get(i))+"</to>");
+				SB.append("</item>");
+			}
+			SB.append("</filename>");
 			SB.append("</config>");
 			System.out.println(SB.toString());
 			BW.write(SB.toString());
@@ -601,7 +719,7 @@ public class Layout_Text extends JFrame {
 		}
 	}
 
-	public void move(int[] rows, int dir) {
+	public void move(int[] rows, int dir, DefaultTableModel DTM) {
 		int temp = -1;
 		String stemp = null;
 		switch (dir) {
@@ -621,16 +739,11 @@ public class Layout_Text extends JFrame {
 						i++;
 					}
 				} else {
-					stemp = srcs.get(rows[i]);
-					DTM.setValueAt(stemp, rows[i] - 1, 0);
-					DTM.setValueAt(srcs.get(rows[i] - 1), rows[i], 0);
-					srcs.set(rows[i], srcs.get(rows[i] - 1));
-					srcs.set(rows[i] - 1, stemp);
-					stemp = dests.get(rows[i]);
-					DTM.setValueAt(stemp, rows[i] - 1, 1);
-					DTM.setValueAt(dests.get(rows[i] - 1), rows[i], 1);
-					dests.set(rows[i], dests.get(rows[i] - 1));
-					dests.set(rows[i] - 1, stemp);
+					for(int ci=0;ci<DTM.getColumnCount();ci++) {
+						stemp = (String) DTM.getValueAt(rows[i], ci);
+						DTM.setValueAt(DTM.getValueAt(rows[i]-1, ci), rows[i], ci);
+						DTM.setValueAt(stemp, rows[i] - 1, ci);
+					}
 					rows[i] -= 1;
 				}
 			}
@@ -646,21 +759,16 @@ public class Layout_Text extends JFrame {
 				}
 			}
 			for (int i = 0; i < rows.length; i++) {
-				if (rows[i] + 1 >= srcs.size()) {
+				if (rows[i] + 1 >= DTM.getRowCount()) {
 					while (i + 1 < rows.length && rows[i] - rows[i + 1] <= 1) {
 						i++;
 					}
 				} else {
-					stemp = srcs.get(rows[i]);
-					DTM.setValueAt(stemp, rows[i] + 1, 0);
-					DTM.setValueAt(srcs.get(rows[i] + 1), rows[i], 0);
-					srcs.set(rows[i], srcs.get(rows[i] + 1));
-					srcs.set(rows[i] + 1, stemp);
-					stemp = dests.get(rows[i]);
-					DTM.setValueAt(stemp, rows[i] + 1, 1);
-					DTM.setValueAt(dests.get(rows[i] + 1), rows[i], 1);
-					dests.set(rows[i], dests.get(rows[i] + 1));
-					dests.set(rows[i] + 1, stemp);
+					for(int ci=0;ci<DTM.getColumnCount();ci++) {
+						stemp = (String) DTM.getValueAt(rows[i], ci);
+						DTM.setValueAt(DTM.getValueAt(rows[i]+1, ci), rows[i], ci);
+						DTM.setValueAt(stemp, rows[i] + 1, ci);
+					}
 					rows[i] += 1;
 				}
 			}
@@ -707,20 +815,10 @@ public class Layout_Text extends JFrame {
 			break;
 		}
 	}
-
-	public void addLog(String info, String time) {
-		LDTM.addRow(new String[] { info.trim(), time });
-		scrollTo(log, log.getRowCount() - 1);
-	}
-
-	public void addChange(String src, String dest) {
-		DTM.addRow(new String[] { src, dest });
-		scrollTo(body, body.getRowCount() - 1);
-	}
-
-	public void addChange_t(String tag, String type, String con, String val) {
-		DTM_T.addRow(new String[] { tag, type, con, val });
-		scrollTo(body, body.getRowCount() - 1);
+	
+	public void addRow(Object[] data,DefaultTableModel dtm,JTable table) {
+		dtm.addRow(data);
+		scrollTo(table,table.getRowCount()-1);
 	}
 
 	public void loadTopPanel(String T) {
@@ -753,9 +851,9 @@ public class Layout_Text extends JFrame {
 					// TODO Auto-generated method stub
 					String before = input_before.getText();
 					String after = input_after.getText();
-					srcs.add(before);
-					dests.add(after);
-					addChange(before, after);
+					/*srcs.add(before);
+					dests.add(after);*/
+					addRow(new String[] {before,after},DTM,body);
 					System.out.println("ADD");
 				}
 
@@ -774,8 +872,8 @@ public class Layout_Text extends JFrame {
 								i--;
 							}
 						}
-						srcs.remove(i);
-						dests.remove(i);
+						/*srcs.remove(i);
+						dests.remove(i);*/
 						DTM.removeRow(i);
 						removedinds.add(i);
 					}
@@ -784,7 +882,27 @@ public class Layout_Text extends JFrame {
 				}
 
 			});
+			buttons.get("up").addActionListener(new ActionListener() {
 
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					int rows[] = body.getSelectedRows();
+					move(rows, -1, DTM);
+				}
+
+			});
+
+			buttons.get("down").addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					int rows[] = body.getSelectedRows();
+					move(rows, 1, DTM);
+				}
+
+			});
 			break;
 		case "tag":
 			panel_top.setLayout(new GridLayout(3, 1));
@@ -824,7 +942,7 @@ public class Layout_Text extends JFrame {
 					String type = (String) input_type.getSelectedItem();
 					String constraint = input_constraint.getText();
 					String value = input_value.getText();
-					addChange_t(tag, type, constraint, value);
+					addRow(new String[] {tag, type, constraint, value},DTM_T,body);
 					System.out.println("ADD");
 				}
 
@@ -843,7 +961,6 @@ public class Layout_Text extends JFrame {
 								i--;
 							}
 						}
-
 						DTM_T.removeRow(i);
 						removedinds.add(i);
 					}
@@ -852,29 +969,114 @@ public class Layout_Text extends JFrame {
 				}
 
 			});
+			buttons.get("up").addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					int rows[] = body.getSelectedRows();
+					move(rows, -1, DTM_T);
+				}
+
+			});
+
+			buttons.get("down").addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					int rows[] = body.getSelectedRows();
+					move(rows, 1, DTM_T);
+				}
+
+			});
+			break;
+		case "filename":
+			panel_top.setLayout(new GridLayout(2, 1));
+			panel_top_r0.setLayout(new GridLayout(2, 3));
+			panel_top_rb.setLayout(new GridLayout(1, 5));
+			JTextField input_before_name = new JTextField(17);
+			JTextField input_after_name = new JTextField(17);
+			JButtonWithData button_index = new JButtonWithData("INDEX");
+			JSpinner input_index = new JSpinner(new SpinnerNumberModel(0,0,100,1));
+			button_index.setComponents(new JComponent[] {input_index});
+			panel_top_r0.add(new JLabel("BEFORE:"));
+			panel_top_r0.add(new JLabel("AFTER:"));
+			panel_top_r0.add(button_index);
+			panel_top_r0.add(input_before_name);
+			panel_top_r0.add(input_after_name);
+			panel_top_r0.add(input_index);
+			panel_top.setMinimumSize(
+					new Dimension(panel_main.getWidth(), input_before_name.getHeight() + buttons.get("add").getHeight()));
+			buttons.get("add").addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					String before = input_before_name.getText();
+					String after = input_after_name.getText();
+					boolean flag = false;
+					flag = button_index.getToggle();
+					Object[] before_full = flag?new String[2]:new String[1];
+					before_full[0]=before;
+					if(flag) {
+						before_full[1]=input_index.getValue().toString();
+					}
+					/*srcs_f.add(before_full);
+					dests_f.add(after);*/
+					addRow(new Object[] { before_full[0],after,flag? before_full[1]:""},DTM_F,body);
+					System.out.println("ADD");
+				}
+
+			});
+
+			buttons.get("remove").addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					int[] inds = body.getSelectedRows();
+					ArrayList<Integer> removedinds = new ArrayList<Integer>();
+					for (int i : inds) {
+						for (int ri : removedinds) {
+							if (ri <= i) {
+								i--;
+							}
+						}
+						/*srcs_f.remove(i);
+						dests_f.remove(i);*/
+						DTM_F.removeRow(i);
+						removedinds.add(i);
+					}
+					removedinds.clear();
+					System.out.println("REMOVE");
+				}
+
+			});
+			buttons.get("up").addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					int rows[] = body.getSelectedRows();
+					move(rows, -1, DTM_F);
+				}
+
+			});
+
+			buttons.get("down").addActionListener(new ActionListener() {
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// TODO Auto-generated method stub
+					int rows[] = body.getSelectedRows();
+					move(rows, 1, DTM_F);
+				}
+
+			});
 			break;
 		}
-		buttons.get("up").addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				int rows[] = body.getSelectedRows();
-				move(rows, -1);
-			}
-
-		});
-
-		buttons.get("down").addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				int rows[] = body.getSelectedRows();
-				move(rows, 1);
-			}
-
-		});
+		
 		buttons.get("commit").addActionListener(new ActionListener() {
 
 			@Override
@@ -886,11 +1088,8 @@ public class Layout_Text extends JFrame {
 		});
 		panel_top_rb.add(buttons.get("add"));
 		panel_top_rb.add(buttons.get("remove"));
-		if(mode) {
-			panel_top_rb.add(buttons.get("up"));
-			panel_top_rb.add(buttons.get("down"));
-			System.out.println(mode);
-		}
+		panel_top_rb.add(buttons.get("up"));
+		panel_top_rb.add(buttons.get("down"));
 		panel_top_rb.add(buttons.get("commit"));
 		panel_top.add(panel_top_rb);
 		if (System.currentTimeMillis() - LAUNCH_TIME > 1000) {
@@ -929,7 +1128,6 @@ public class Layout_Text extends JFrame {
 		String target_s = "<"+tag+">";
 		String target_e = "</"+tag+">";
 		while(rets.contains(target_s)&&rets.contains(target_e)) {
-			System.out.println(tag);
 			int start = rets.indexOf(target_s);
 			int end = start+rets.substring(start).indexOf(target_e);
 			if(start>-1 && start<=end) {
@@ -964,7 +1162,7 @@ public class Layout_Text extends JFrame {
 		return ret;
 	}
 
-	public boolean getMode() {
+	public int getMode() {
 		return mode;
 	}
 	
@@ -987,6 +1185,46 @@ public class Layout_Text extends JFrame {
 
 	public void setSizeThreshold(double sizeThreshold) {
 		this.sizeThreshold = sizeThreshold;
+	}
+
+	public DefaultTableModel getDTM() {
+		return DTM;
+	}
+
+	public void setDTM(DefaultTableModel dTM) {
+		DTM = dTM;
+	}
+
+	public DefaultTableModel getDTM_T() {
+		return DTM_T;
+	}
+
+	public void setDTM_T(DefaultTableModel dTM_T) {
+		DTM_T = dTM_T;
+	}
+
+	public DefaultTableModel getDTM_F() {
+		return DTM_F;
+	}
+
+	public void setDTM_F(DefaultTableModel dTM_F) {
+		DTM_F = dTM_F;
+	}
+
+	public JTable getBody() {
+		return body;
+	}
+
+	public void setBody(JTable body) {
+		this.body = body;
+	}
+
+	public JTable getLog() {
+		return log;
+	}
+
+	public void setLog(JTable log) {
+		this.log = log;
 	}
 	
 	

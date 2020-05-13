@@ -79,7 +79,7 @@ public class Demo implements Runnable {
 					}
 					catch(Exception e) {
 						ABORT_FLAG = true;
-						L.addLog("Regu Syntax Error #FAILED", new Date().toString());
+						L.addRow(new String[] {"Regu Syntax Error #FAILED", new Date().toString()}, L.getDTM(), L.getBody());
 					}
 					if(pathname.isDirectory()||flag) {
 						return true;

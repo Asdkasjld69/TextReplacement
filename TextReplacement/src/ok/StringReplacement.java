@@ -29,21 +29,22 @@ public class StringReplacement {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
 		StringBuffer log = new StringBuffer();
-		String filename = F.getAbsolutePath();
+		String filepath = F.getAbsolutePath();
+		String filename = F.getName();
 		int rows = 0;
 		int len = src.length>dest.length?src.length:dest.length;
 		File backup = null;
 		if(safe) {
-			backup = new File(F.getAbsolutePath().replace(F.getName(), "")+"backup-"+serial);
+			backup = new File(F.getAbsolutePath().replace(filename, "")+"backup-"+serial);
 			System.out.println(backup.getAbsolutePath());
 			if(!backup.exists()) {
 				backup.mkdirs();
 			}
 		}
 		Date time = new Date();
-		log.append(F.getName()+" #STARTED\t"+time.toString()+"\n");
+		log.append(filename+" #STARTED\t"+time.toString()+"\n");
 		//rtf
-		if(F.getName().split("\\.")[1].matches(RichStyleFont)) {
+		if(filename.split("\\.")[1].matches(RichStyleFont)) {
 			DefaultStyledDocument DSD = new DefaultStyledDocument();
 			try {
 				InputStream in = new FileInputStream(F);
@@ -70,7 +71,7 @@ public class StringReplacement {
 				}
 				DSD.replace(0, DSD.getLength(), SB.toString(), null);
 				in.close();
-				File tmp = new File(filename+".new");
+				File tmp = new File(filepath+".new");
 				OutputStream out = new FileOutputStream(tmp);
 				rtf.write(out, DSD,0, DSD.getLength());
 				out.close();
@@ -78,15 +79,15 @@ public class StringReplacement {
 					F.delete();
 				}
 				else {
-					F.renameTo(new File(backup.getAbsolutePath()+"/"+F.getName()));
+					F.renameTo(new File(backup.getAbsolutePath()+"/"+filename));
 				}
 				tmp.renameTo(F.getAbsoluteFile());
 				time = new Date();
-				log.append(F.getName()+" #FINISHED("+rows+")\t"+time.toString()+"\n");
+				log.append(filename+" #FINISHED("+rows+")\t"+time.toString()+"\n");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				time = new Date();
-				log.append(F.getName()+" #FAILED!!!\t"+time.toString()+"\n");
+				log.append(filename+" #FAILED!!!\t"+time.toString()+"\n");
 				e.printStackTrace();
 			}
 			return log.toString();
@@ -96,7 +97,7 @@ public class StringReplacement {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
 				time = new Date();
-				log.append(F.getName()+" NOT READY #FAILED!!!\t"+time.toString()+"\n");
+				log.append(filename+" NOT READY #FAILED!!!\t"+time.toString()+"\n");
 				BR.close();
 				return log.toString();
 			}
@@ -121,7 +122,7 @@ public class StringReplacement {
 				SB.append(line+"\n");
 			}
 			BR.close();
-			File tmp = new File(filename+".new");
+			File tmp = new File(filepath+".new");
 			BW = new BufferedWriter(new FileWriter(tmp));
 			BW.write(SB.toString());
 			BW.close();
@@ -129,15 +130,15 @@ public class StringReplacement {
 				F.delete();
 			}
 			else {
-				F.renameTo(new File(backup.getAbsolutePath()+"/"+F.getName()));
+				F.renameTo(new File(backup.getAbsolutePath()+"/"+filename));
 			}
 			tmp.renameTo(F.getAbsoluteFile());
 			time = new Date();
-			log.append(F.getName()+" #FINISHED("+rows+")\t"+time.toString()+"\n");
+			log.append(filename+" #FINISHED("+rows+")\t"+time.toString()+"\n");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			time = new Date();
-			log.append(F.getName()+" #FAILED!!!\t"+time.toString()+"\n");
+			log.append(filename+" #FAILED!!!\t"+time.toString()+"\n");
 			e.printStackTrace();
 		}
 		return log.toString();

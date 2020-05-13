@@ -14,8 +14,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.poi.hssf.record.BackupRecord;
-
 /**
  * @author cnmbx
  *
@@ -27,12 +25,13 @@ public class XmlBlockReplacement {
 		BufferedWriter BW = null;
 		File backup = null;
 		StringBuffer log = new StringBuffer();
-		String filename = F.getAbsolutePath();
+		String filepath = F.getAbsolutePath();
+		String filename = F.getName();
 		int rows=0;
 		Date time = new Date();
-		log.append(F.getName()+" #STARTED\t"+time.toString()+"\n");
+		log.append(filename+" #STARTED\t"+time.toString()+"\n");
 		if(safe) {
-			backup = new File(F.getAbsolutePath().replace(F.getName(), "")+"backup-"+serial);
+			backup = new File(F.getAbsolutePath().replace(filename, "")+"backup-"+serial);
 			if(!backup.exists()) {
 				backup.mkdirs();
 			}
@@ -41,7 +40,7 @@ public class XmlBlockReplacement {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
 				time = new Date();
-				log.append(F.getName()+" NOT READY #FAILED!!!\t"+time.toString()+"\n");
+				log.append(filename+" NOT READY #FAILED!!!\t"+time.toString()+"\n");
 				BR.close();
 				return log.toString();
 			}
@@ -131,7 +130,7 @@ public class XmlBlockReplacement {
 				SB.append(line+"\n");
 			}
 			BR.close();
-			File tmp = new File(filename+".new");
+			File tmp = new File(filepath+".new");
 			BW = new BufferedWriter(new FileWriter(tmp));
 			BW.write(SB.toString());
 			BW.close();
@@ -139,15 +138,15 @@ public class XmlBlockReplacement {
 				F.delete();
 			}
 			else {
-				F.renameTo(new File(backup.getAbsolutePath()+"/"+F.getName()));
+				F.renameTo(new File(backup.getAbsolutePath()+"/"+filename));
 			}
 			tmp.renameTo(F.getAbsoluteFile());
 			time = new Date();
-			log.append(F.getName()+" #FINISHED("+rows+")\t"+time.toString()+"\n");
+			log.append(filename+" #FINISHED("+rows+")\t"+time.toString()+"\n");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			time = new Date();
-			log.append(F.getName()+" #FAILED\t"+time.toString()+"\n");
+			log.append(filename+" #FAILED\t"+time.toString()+"\n");
 			e.printStackTrace();
 		}
 		return log.toString();
