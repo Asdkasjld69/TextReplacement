@@ -142,8 +142,6 @@ public class Layout_Text extends JFrame {
 					super.setValueAt(aValue, row, column);
 				}
 			}
-			
-			
 		};
 		LDTM = new DefaultTableModel(null, lheaders) {
 
