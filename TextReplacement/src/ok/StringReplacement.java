@@ -22,7 +22,7 @@ import javax.swing.text.rtf.RTFEditorKit;
  *
  */
 public class StringReplacement {
-	private static String OfficeWord = "doc|docx";
+	//private static String OfficeWord = "doc|docx";
 	private static String RichStyleFont = "rtf";
 	private static long serial = System.currentTimeMillis();
 	public static String replace(File F,Object[] src,Object[] dest, boolean safe) {

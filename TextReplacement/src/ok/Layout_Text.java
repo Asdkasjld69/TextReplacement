@@ -30,7 +30,6 @@ import java.util.Set;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -63,13 +62,14 @@ public class Layout_Text extends JFrame {
 	private DefaultTableModel DTM;
 	private DefaultTableModel DTM_T;
 	private DefaultTableModel LDTM;
-	private ArrayList<String> srcs = new ArrayList<String>();
-	private ArrayList<String> dests = new ArrayList<String>();
-	private HashMap<String, ArrayList<ArrayList<String>>> tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
-	private HashMap<String, String> tagv = new HashMap<String, String>();
-	private JTextField input_regu = new JTextField(32);
-	private JTextField input_path = new JTextField();
+	private ArrayList<String> srcs;
+	private ArrayList<String> dests;
+	private HashMap<String, ArrayList<ArrayList<String>>> tagtm;
+	private HashMap<String, String> tagv;
+	private JTextField input_regu;
+	private JTextField input_path;
 	private JSpinner input_depth;
+	private JSpinner input_size;
 	private JTable body;
 	private JTable log;
 	private JScrollPane panel_body;
@@ -84,7 +84,7 @@ public class Layout_Text extends JFrame {
 	private JDialog error;
 	private JLabel intro;
 	private JCheckBox check_safe;
-	int height_top;
+	private double sizeThreshold;
 	private boolean stopflag;
 	private int state;
 	private boolean mode;
@@ -127,9 +127,10 @@ public class Layout_Text extends JFrame {
 		dests = new ArrayList<String>();
 		tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
 		tagv = new HashMap<String, String>();
-		input_regu = new JTextField(32);
+		input_regu = new JTextField(20);
 		input_path = new JTextField();
 		input_depth = new JSpinner(new SpinnerNumberModel(0,0,100,1));
+		input_size = new JSpinner(new SpinnerNumberModel(1.0,0.0,512.0,1.0));
 		body = new JTable(DTM);
 		log = new JTable(LDTM) {
 
@@ -162,7 +163,6 @@ public class Layout_Text extends JFrame {
 				}
 				return comp;
 			}
-
 		};
 		panel_body = new JScrollPane(body);
 		panel_log = new JScrollPane(log);
@@ -177,6 +177,7 @@ public class Layout_Text extends JFrame {
 		intro = new JLabel(
 				"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
 		check_safe = new JCheckBox("Safe");
+		sizeThreshold = 1;
 		stopflag = false;
 		state = 0;
 		mode = true;
@@ -258,6 +259,9 @@ public class Layout_Text extends JFrame {
 		panel_bottom.add(input_regu);
 		panel_bottom.add(new JLabel("Depth:"));
 		panel_bottom.add(input_depth);
+		panel_bottom.add(new JLabel("Size:"));
+		panel_bottom.add(input_size);
+		panel_bottom.add(new JLabel("MB"));
 		panel_bottom.add(check_safe);
 		panel_left.add(panel_log);
 		panel_left.add(drag, BorderLayout.EAST);
@@ -273,7 +277,6 @@ public class Layout_Text extends JFrame {
 		panel_log.setPreferredSize(new Dimension((int) (this.getWidth() * ratio), panel_log.getHeight()));
 		this.setVisible(true);
 		panel_top.setVisible(true);
-		height_top = panel_top.getHeight();
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		drag.addMouseMotionListener(new MouseMotionListener() {
@@ -440,7 +443,7 @@ public class Layout_Text extends JFrame {
 	public void applyConfig() {
 		setRegu(input_regu.getText());
 		setPath(input_path.getText());
-		
+		setSizeThreshold((double) input_size.getValue());
 	}
 	
 	public void loadInputs() {
@@ -897,13 +900,7 @@ public class Layout_Text extends JFrame {
 	}
 
 	public void adaptSize() {
-		int width = panel_top.getWidth();
 		double mwidth = getWidth();
-		/*
-		 * if (mwidth < size.width) { panel_top.setPreferredSize(new Dimension(width,
-		 * height_top * (mode?2:3))); } else { panel_top.setPreferredSize(new
-		 * Dimension(width, height_top * (mode?1:2))); }
-		 */
 		int x = panel_body.getX();
 		int y = panel_top.getY() + panel_top.getHeight();
 		panel_body.setLocation(x, y);
@@ -982,6 +979,14 @@ public class Layout_Text extends JFrame {
 
 	public void setPath(String path) {
 		this.path = path;
+	}
+
+	public double getSizeThreshold() {
+		return sizeThreshold;
+	}
+
+	public void setSizeThreshold(double sizeThreshold) {
+		this.sizeThreshold = sizeThreshold;
 	}
 	
 	
