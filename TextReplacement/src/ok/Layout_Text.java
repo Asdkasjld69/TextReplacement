@@ -93,6 +93,94 @@ public class Layout_Text extends JFrame {
 	public Layout_Text() {
 		super();
 		init();
+	}
+
+	private void init() {
+		// TODO Auto-generated method stub
+		signs = new HashMap<String,String>();
+		signs.put("<", "&lt;");
+		signs.put(">", "&gt;");
+		signs.put("&", "&amp;");
+		signs.put("'", "&apos;");
+		signs.put("\"", "&quot;");
+		regu = "";
+		path = "path";
+		config_path = new File("config");
+		config = new File(config_path.getPath() + "/config.xml");
+		DTM = new DefaultTableModel(null, headers);
+		DTM_T = new DefaultTableModel(null, headers_t);
+		LDTM = new DefaultTableModel(null, lheaders) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void setValueAt(Object aValue, int row, int column) {
+				// TODO Auto-generated method stub
+				return;
+			}
+
+		};
+		srcs = new ArrayList<String>();
+		dests = new ArrayList<String>();
+		tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
+		tagv = new HashMap<String, String>();
+		input_regu = new JTextField(32);
+		input_path = new JTextField();
+		input_depth = new JSpinner(new SpinnerNumberModel(0,0,100,1));
+		body = new JTable(DTM);
+		log = new JTable(LDTM) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+				// TODO Auto-generated method stub
+				Component comp = super.prepareRenderer(renderer, row, column);
+				comp.setBackground(new Color(255, 255, 255));
+				comp.setForeground(new Color(0, 0, 0));
+				String[] mess = LDTM.getValueAt(row, 0).toString().split("#");
+				if (mess.length > 0) {
+					if (mess[mess.length - 1].equals("COMMIT")) {
+						comp.setBackground(new Color(255, 96, 255));
+					}
+					if (mess[mess.length - 1].equals("STARTED")) {
+						comp.setBackground(new Color(128, 196, 255));
+					}
+					if (mess[mess.length - 1].contains("FINISHED")) {
+						comp.setBackground(new Color(128, 255, 128));
+					}
+					if (mess[mess.length - 1].contains("FAILED")) {
+						comp.setBackground(new Color(255, 96, 96));
+						comp.setForeground(new Color(255, 255, 255));
+					}
+				}
+				return comp;
+			}
+
+		};
+		panel_body = new JScrollPane(body);
+		panel_log = new JScrollPane(log);
+		panel_top = new JPanel();
+		panel_main = new JPanel();
+		panel_left = new JPanel();
+		buttons = new HashMap<String, JButton>();
+		size = new Dimension(716, 400);
+		ratio = 0.4;
+		dialog_about = new JDialog();
+		error = new JDialog();
+		intro = new JLabel(
+				"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
+		check_safe = new JCheckBox("Safe");
+		stopflag = false;
+		state = 0;
+		mode = true;
+		LAUNCH_TIME = System.currentTimeMillis();
 		JMenuBar mbar = new JMenuBar();
 		JButton about = new JButton("About");
 		JButton switchmode = new JButton("TEXT");
@@ -251,94 +339,6 @@ public class Layout_Text extends JFrame {
 
 		});
 		// this.setResizable(false);
-	}
-
-	private void init() {
-		// TODO Auto-generated method stub
-		signs = new HashMap<String,String>();
-		signs.put("<", "&lt;");
-		signs.put(">", "&gt;");
-		signs.put("&", "&amp;");
-		signs.put("'", "&apos;");
-		signs.put("\"", "&quot;");
-		regu = "";
-		path = "path";
-		config_path = new File("config");
-		config = new File(config_path.getPath() + "/config.xml");
-		DTM = new DefaultTableModel(null, headers);
-		DTM_T = new DefaultTableModel(null, headers_t);
-		LDTM = new DefaultTableModel(null, lheaders) {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void setValueAt(Object aValue, int row, int column) {
-				// TODO Auto-generated method stub
-				return;
-			}
-
-		};
-		srcs = new ArrayList<String>();
-		dests = new ArrayList<String>();
-		tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
-		tagv = new HashMap<String, String>();
-		input_regu = new JTextField(32);
-		input_path = new JTextField();
-		input_depth = new JSpinner(new SpinnerNumberModel(0,0,100,1));
-		body = new JTable(DTM);
-		log = new JTable(LDTM) {
-
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-				// TODO Auto-generated method stub
-				Component comp = super.prepareRenderer(renderer, row, column);
-				comp.setBackground(new Color(255, 255, 255));
-				comp.setForeground(new Color(0, 0, 0));
-				String[] mess = LDTM.getValueAt(row, 0).toString().split("#");
-				if (mess.length > 0) {
-					if (mess[mess.length - 1].equals("COMMIT")) {
-						comp.setBackground(new Color(255, 96, 255));
-					}
-					if (mess[mess.length - 1].equals("STARTED")) {
-						comp.setBackground(new Color(128, 196, 255));
-					}
-					if (mess[mess.length - 1].contains("FINISHED")) {
-						comp.setBackground(new Color(128, 255, 128));
-					}
-					if (mess[mess.length - 1].contains("FAILED")) {
-						comp.setBackground(new Color(255, 96, 96));
-						comp.setForeground(new Color(255, 255, 255));
-					}
-				}
-				return comp;
-			}
-
-		};
-		panel_body = new JScrollPane(body);
-		panel_log = new JScrollPane(log);
-		panel_top = new JPanel();
-		panel_main = new JPanel();
-		panel_left = new JPanel();
-		buttons = new HashMap<String, JButton>();
-		size = new Dimension(716, 400);
-		ratio = 0.4;
-		dialog_about = new JDialog();
-		error = new JDialog();
-		intro = new JLabel(
-				"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
-		check_safe = new JCheckBox("Safe");
-		stopflag = false;
-		state = 0;
-		mode = true;
-		LAUNCH_TIME = System.currentTimeMillis();
 	}
 
 	public void loadConfig() {
@@ -791,7 +791,9 @@ public class Layout_Text extends JFrame {
 			panel_top_rb.setLayout(new GridLayout(1,3));
 			JTextField input_tag = new JTextField();
 			JComboBox<String> input_type = new JComboBox<String>();
-			input_type.addItem("not");
+			for (int i = 0; i < 10; i++) {
+				input_type.addItem("not"+String.valueOf(i + 1));
+			}
 			for (int i = 0; i < 10; i++) {
 				input_type.addItem(String.valueOf(i + 1));
 			}

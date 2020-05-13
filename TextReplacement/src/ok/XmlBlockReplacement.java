@@ -11,6 +11,8 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.poi.hssf.record.BackupRecord;
 
@@ -59,31 +61,57 @@ public class XmlBlockReplacement {
 						}
 						HashMap<String,Boolean> ofm = new HashMap<String,Boolean>();
 						for(int n=0;n<src.get(i).length;n++) {
-							switch((String)tag.get(i)[n+1]) {
-							case "not":	break;
-							case "":	break;
-							default:	ofm.put((String)tag.get(i)[n+1],false);
+							if(!((String) tag.get(i)[n+1]).contains("not")) {
+								ofm.put((String)tag.get(i)[n+1],false);
+							}
+							else {
+								ofm.put((String)tag.get(i)[n+1],true);
 							}
 						}
 						for(int n=0;n<src.get(i).length;n++) {
-							switch((String)tag.get(i)[n+1]) {
-							case "not":	if(line.contains((String)src.get(i)[n])) {
-											flag = false;
-										}break;
-							case "":	if(!line.contains((String)src.get(i)[n])) {
-											flag = false;
-										}break;
-							default:	if(line.contains((String)src.get(i)[n])) {
-											ofm.put((String)tag.get(i)[n+1],true);
-										}
-							}
-							if(!flag) {
-								break;
+							if(line.contains((String)src.get(i)[n])) {
+								if(!((String) tag.get(i)[n+1]).contains("not")) {
+									ofm.put((String)tag.get(i)[n+1],true);
+								}
+								else {
+									ofm.put((String)tag.get(i)[n+1],false);
+								}
 							}
 						}
-						if(flag) {
-							flag = !ofm.containsValue(false);
+						Set<String> ks = ofm.keySet();
+						Iterator<String> it = ks.iterator();
+						String t = "";
+						while(it.hasNext()) {
+							t = it.next();
+							if(t.startsWith("not")) {
+								String notr = t.replaceFirst("not", "");
+								flag = false;
+								if(ofm.containsKey(notr)) {
+									if(ofm.get(t)&&ofm.get(notr)) {
+										flag = true;break;
+									}
+								}
+								else {
+									if(ofm.get(t)) {
+										flag = true;break;
+									}
+								}
+							}
+							else {
+								String not = "not".concat(t);
+								if(ofm.containsKey(not)) {
+									if(ofm.get(t)&&ofm.get(not)) {
+										flag = true;break;
+									}
+								}
+								else {
+									if(ofm.get(t)) {
+										flag = true;break;
+									}
+								}
+							}
 						}
+						System.out.println(ofm);
 					}
 					if(flag) {
 						while((line=BR.readLine())!=null){
