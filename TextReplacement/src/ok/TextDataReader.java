@@ -22,14 +22,14 @@ public class TextDataReader {
 			BR = new BufferedReader(new FileReader(F));
 			Date time = new Date();
 			if(!BR.ready()) {
-				log.append("READ "+F.getName()+" #FAILED!!!\t"+time.toString()+"\n");
+				log.append("<log><message>"+"READ "+F.getName()+" #FAILED!!!</message><time>"+time.toString()+"</time></log>");
 				ret[1] = log.toString();
 				BR.close();
 				return ret;
 			}
 			String line=null;
 			time = new Date();
-			log.append("READ "+F.getName()+" #STARTED\t"+time.toString()+"\n");
+			log.append("<log><message>"+"READ "+F.getName()+" #STARTED</message><time>"+time.toString()+"</time></log>");
 			StringBuffer SB = new StringBuffer();
 			while((line=BR.readLine())!=null) {
 				SB.append(line+"\n");
@@ -37,7 +37,7 @@ public class TextDataReader {
 			BR.close();
 			ret[0] = SB.toString();
 			time = new Date();
-			log.append("READ "+F.getName()+" #FINISHED\t"+time.toString()+"\n");
+			log.append("<log><message>"+"READ "+F.getName()+" #FINISHED</message><time>"+time.toString()+"</time></log>");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

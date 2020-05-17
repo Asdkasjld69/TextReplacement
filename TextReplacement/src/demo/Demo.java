@@ -2,8 +2,6 @@ package demo;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileNotFoundException;
@@ -12,9 +10,7 @@ import java.io.IOException;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
 
-import javax.swing.JButton;
 import javax.swing.JOptionPane;
 
 import com.sun.jna.platform.win32.User32;
@@ -26,7 +22,6 @@ import ok.Layout_Text;
 public class Demo implements Runnable {
 	public static String title = "Replace Text";
 	private static File config_path = new File("config");
-	private static File config = new File(config_path.getPath()+"/config.xml");
 	private static File lock_flag = new File(config_path.getPath()+"/flag");
 	private static Layout_Text L = null;
 	private static boolean ABORT_FLAG = false;
@@ -79,7 +74,7 @@ public class Demo implements Runnable {
 					}
 					catch(Exception e) {
 						ABORT_FLAG = true;
-						L.addRow(new String[] {"Regu Syntax Error #FAILED", new Date().toString()}, L.getDTM(), L.getBody());
+						L.addRow(new String[] {"Regu Syntax Error #FAILED", new Date().toString()}, L.getTms().get(-1), L.getBody());
 					}
 					if(pathname.isDirectory()||flag) {
 						return true;

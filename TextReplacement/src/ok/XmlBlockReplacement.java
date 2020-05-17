@@ -29,7 +29,7 @@ public class XmlBlockReplacement {
 		String filename = F.getName();
 		int rows=0;
 		Date time = new Date();
-		log.append(filename+" #STARTED\t"+time.toString()+"\n");
+		log.append("<log><message>"+filename+" #STARTED</message><time>"+time.toString()+"</time></log>");
 		if(safe) {
 			backup = new File(F.getAbsolutePath().replace(filename, "")+"backup-"+serial);
 			if(!backup.exists()) {
@@ -40,7 +40,7 @@ public class XmlBlockReplacement {
 			BR = new BufferedReader(new FileReader(F));
 			if(!BR.ready()) {
 				time = new Date();
-				log.append(filename+" NOT READY #FAILED!!!\t"+time.toString()+"\n");
+				log.append("<log><message>"+filename+" NOT READY #FAILED!!!</message><time>"+time.toString()+"</time></log>");
 				BR.close();
 				return log.toString();
 			}
@@ -124,7 +124,7 @@ public class XmlBlockReplacement {
 				}
 				if(flag) {
 					time = new Date();
-					log.append(tline+" #REPLACED!\t"+time.toString()+"\n");
+					log.append("<log><message>"+tline+" #REPLACED!</message><time>"+time.toString()+"</time></log>");
 					rows++;
 				}
 				SB.append(line+"\n");
@@ -142,11 +142,11 @@ public class XmlBlockReplacement {
 			}
 			tmp.renameTo(F.getAbsoluteFile());
 			time = new Date();
-			log.append(filename+" #FINISHED("+rows+")\t"+time.toString()+"\n");
+			log.append("<log><message>"+filename+" #FINISHED("+rows+")</message><time>"+time.toString()+"</time></log>");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			time = new Date();
-			log.append(filename+" #FAILED\t"+time.toString()+"\n");
+			log.append("<log><message>"+filename+" #FAILED</message><time>"+time.toString()+"</time></log>");
 			e.printStackTrace();
 		}
 		return log.toString();

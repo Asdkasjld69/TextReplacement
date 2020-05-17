@@ -46,7 +46,6 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableModel;
 
 import demo.Demo;
 
@@ -55,22 +54,18 @@ public class Layout_Text extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private static final String[] headers = { "Before", "After" };
+	private static final String[] headers = { "Before", "After", "Mode" };
 	private static final String[] headers_t = { "Tag", "Type", "Match", "Value" };
 	private static final String[] headers_f = { "Before", "After", "Index"};
 	private static final String[] lheaders = { "Message", "Time" };
 	private static final String[] modes = {"Text","Tag","Filename"};
 	private static Map<String,String> signs;
+	private static Map<Integer,DefaultTableModel> tms;
 	private String regu;
 	private String path;
 	private File config_path;
 	private File config;
-	private DefaultTableModel DTM;
-	private DefaultTableModel DTM_T;
-	private DefaultTableModel DTM_F;
-	private DefaultTableModel LDTM;
-	private ArrayList<Object> srcs;
-	private ArrayList<Object> dests;
+	private ArrayList<Object[]> change_text;
 	private ArrayList<Object[]> srcs_f;
 	private ArrayList<Object> dests_f;
 	private HashMap<String, ArrayList<ArrayList<String>>> tagtm;
@@ -116,9 +111,107 @@ public class Layout_Text extends JFrame {
 		path = "path";
 		config_path = new File("config");
 		config = new File(config_path.getPath() + "/config.xml");
-		DTM = new DefaultTableModel(null, headers);
-		DTM_T = new DefaultTableModel(null, headers_t);
-		DTM_F = new DefaultTableModel(null, headers_f) {
+		buttons = new HashMap<String, JButton>();
+		JButton button_remove = new JButton("remove");
+		JButton button_up = new JButton("↑");
+		JButton button_down = new JButton("↓");
+		JButton button_commit = new JButton("commit");
+		JButtonWithData button_tmode = new JButtonWithData("NORMAL");
+		JButtonWithData button_index = new JButtonWithData("INDEX");
+		button_tmode.setCycle_text(new String[] {"NORMAL","REGREX(PARTIAL)","REGREX(SINGLE LINE)","REGREX(WRAP LINES)"});
+		button_tmode.setCycle(new Object[]{0,1,2,3});
+		button_tmode.setColor(0, new Color(255,255,255));
+		button_tmode.setColor(1, new Color(128,255,196));
+		button_tmode.setColor(2, new Color(128,196,255));
+		button_tmode.setColor(3, new Color(196,128,255));
+		button_remove.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				int[] inds = body.getSelectedRows();
+				ArrayList<Integer> removedinds = new ArrayList<Integer>();
+				for (int i : inds) {
+					for (int ri : removedinds) {
+						if (ri <= i) {
+							i--;
+						}
+					}
+					tms.get(mode).removeRow(i);
+					removedinds.add(i);
+				}
+				removedinds.clear();
+				System.out.println("REMOVE");
+			}
+
+		});
+		button_up.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				int rows[] = body.getSelectedRows();
+				move(rows, -1, tms.get(mode));
+			}
+
+		});
+
+		button_down.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				int rows[] = body.getSelectedRows();
+				move(rows, 1, tms.get(mode));
+			}
+
+		});
+		button_commit.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				new Thread(new Demo()).start();
+			}
+
+		});
+		buttons.put("text_mode", button_tmode);
+		buttons.put("up", button_up);
+		buttons.put("down", button_down);
+		buttons.put("remove", button_remove);
+		buttons.put("commit", button_commit);
+		buttons.put("filename_index", button_index);
+		DefaultTableModel DTM = new DefaultTableModel(null, headers) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -2751372245925669029L;
+
+			@Override
+			public void setValueAt(Object aValue, int row, int column) {
+				// TODO Auto-generated method stub
+				String val = aValue.toString();
+				if(this.getColumnName(column).equals("Mode")&&val!=null&&!val.equals("")) {
+					try {
+						int mi = Integer.parseInt(val);
+						if(mi<0||mi>3) {
+							return;
+						}
+					}
+					catch(Exception e) {
+						return;
+					}
+					super.setValueAt(aValue, row, column);
+				}
+				else {
+					super.setValueAt(aValue, row, column);
+				}
+			}
+			
+		};
+		DefaultTableModel DTM_T = new DefaultTableModel(null, headers_t);
+		DefaultTableModel DTM_F = new DefaultTableModel(null, headers_f) {
 
 			/**
 			 * 
@@ -143,7 +236,7 @@ public class Layout_Text extends JFrame {
 				}
 			}
 		};
-		LDTM = new DefaultTableModel(null, lheaders) {
+		DefaultTableModel LDTM = new DefaultTableModel(null, lheaders) {
 
 			/**
 			 * 
@@ -157,8 +250,12 @@ public class Layout_Text extends JFrame {
 			}
 
 		};
-		srcs = new ArrayList<Object>();
-		dests = new ArrayList<Object>();
+		tms = new HashMap<Integer,DefaultTableModel>();
+		tms.put(-1, LDTM);
+		tms.put(0, DTM);
+		tms.put(1, DTM_T);
+		tms.put(2, DTM_F);
+		change_text = new ArrayList<Object[]>();
 		srcs_f = new ArrayList<Object[]>();
 		dests_f = new ArrayList<Object>();
 		tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
@@ -167,7 +264,45 @@ public class Layout_Text extends JFrame {
 		input_path = new JTextField();
 		input_depth = new JSpinner(new SpinnerNumberModel(0,0,100,1));
 		input_size = new JSpinner(new SpinnerNumberModel(1.0,0.0,512.0,1.0));
-		body = new JTable(DTM);
+		body = new JTable(DTM) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1417313921920001140L;
+
+			@Override
+			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+				// TODO Auto-generated method stub
+				Component cell = super.prepareRenderer(renderer, row, column);
+				Color back = Color.white;
+				switch(mode) {
+				case 0:
+					if(column==2) {
+						switch(Integer.parseInt(DTM.getValueAt(row, column).toString())) {
+						case 1: back = new Color(128,255,196);break;
+						case 2:	back = new Color(128,196,255);break;
+						case 3: back = new Color(196,128,255);break;
+						}
+					}
+					else {
+						back = Color.WHITE;
+					}break;
+				default:
+					back = Color.WHITE;
+				}
+				int[] rows = getSelectedRows();
+				for(int i=0;i<rows.length;i++) {
+					if(row==rows[i]) {
+						back = back.darker();
+						break;
+					}
+				}
+				cell.setBackground(back);
+				return cell;
+			}
+			
+		};
 		log = new JTable(LDTM) {
 
 			/**
@@ -187,13 +322,13 @@ public class Layout_Text extends JFrame {
 					if (message.equals("COMMIT")) {
 						comp.setBackground(new Color(255, 96, 255));
 					}
-					if (message.contains("STARTED")) {
+					if (message.equals("STARTED")) {
 						comp.setBackground(new Color(128, 196, 255));
 					}
-					if (message.contains("FINISHED")) {
+					if (message.matches("FINISHED(.*)")) {
 						comp.setBackground(new Color(128, 255, 128));
 					}
-					if (message.contains("FAILED")) {
+					if (message.equals("FAILED")) {
 						comp.setBackground(new Color(255, 96, 96));
 						comp.setForeground(new Color(255, 255, 255));
 					}
@@ -206,7 +341,7 @@ public class Layout_Text extends JFrame {
 		panel_top = new JPanel();
 		panel_main = new JPanel();
 		panel_left = new JPanel();
-		buttons = new HashMap<String, JButton>();
+		
 		size = new Dimension(716, 400);
 		ratio = 0.4;
 		dialog_about = new JDialog();
@@ -434,16 +569,21 @@ public class Layout_Text extends JFrame {
 			if(temp2!=null) {
 				for(String item:temp2) {
 					temp3 = scanTag("from",item,false);
+					String from = "";
+					String to = "";
+					int mode = 0;
 					if(temp3!=null) {
-						srcs.add(convertToString(temp3.get(0)));
+						from = convertToString(temp3.get(0));
 					}
 					temp3 = scanTag("to",item,false);
 					if(temp3!=null) {
-						dests.add(convertToString(temp3.get(0)));
+						to = convertToString(temp3.get(0));
 					}
-					else {
-						dests.add("");
+					temp3 = scanTag("mode",item,false);
+					if(temp3!=null) {
+						mode = Integer.parseInt(convertToString(temp3.get(0)));
 					}
+					change_text.add(new Object[] {from,to,mode});
 				}
 			}
 		}
@@ -503,10 +643,11 @@ public class Layout_Text extends JFrame {
 		}
 		
 		loadInputs();
-		
-		for (String l : conf[1].split("\n")) {
-			String[] log = l.split("\t");
-			addRow(new String[] {l.substring(0, l.indexOf(log[log.length-1])).trim(), log[log.length-1]},LDTM,this.log);
+		temp = scanTag("log",conf[1],false);
+		for (String log:temp) {
+			temp2 = scanTag("message",log,false);
+			temp3 = scanTag("time",log,false);
+			addRow(new String[] {temp2==null?"":temp2.get(0), temp3==null?"":temp3.get(0)},tms.get(-1),this.log);
 		}
 	}
 
@@ -523,8 +664,8 @@ public class Layout_Text extends JFrame {
 	public void loadInputs() {
 		input_path.setText(path);
 		input_regu.setText(regu);
-		for(int i=0;i<srcs.size();i++) {
-			addRow(new String[] {(String) srcs.get(i),(String) dests.get(i)},DTM,body);
+		for(int i=0;i<change_text.size();i++) {
+			addRow(change_text.get(i),tms.get(0),body);
 		}
 		Set<String> ks = tagtm.keySet();
 		Iterator<String> it = ks.iterator();
@@ -536,44 +677,43 @@ public class Layout_Text extends JFrame {
 			temp = tagtm.get(stemp).get(0);
 			temp2 = tagtm.get(stemp).get(1);
 			for(int i=0;i<temp.size();i++) {
-				addRow(new String[] {stemp,temp.get(i),temp2.get(i),tagv.get(stemp)},DTM_T,body);
+				addRow(new String[] {stemp,temp.get(i),temp2.get(i),tagv.get(stemp)},tms.get(1),body);
 			}
 		}
 		for(int i=0;i<srcs_f.size();i++) {
 			Object[] cons = srcs_f.get(i);
-			addRow(new String[] {(String) cons[0],(String) dests_f.get(i),cons.length>1?(String) cons[1]:""},DTM_F,body);
+			addRow(new String[] {(String) cons[0],(String) dests_f.get(i),cons.length>1?(String) cons[1]:""},tms.get(2),body);
 		}
 	}
 
 	public void commitChanges(ArrayList<File> files) {
 		String log = "START #COMMIT";
 		Date time = new Date();
-		addRow(new String[] {log, time.toString()},LDTM,this.log);
+		addRow(new String[] {log, time.toString()},tms.get(-1),this.log);
 		int rows = 0;
+		rows = tms.get(mode).getRowCount();
+		DefaultTableModel tm = tms.get(mode);
 		switch(mode) {
 		case 0:
 			StringReplacement.setSerial(System.currentTimeMillis());
-			rows = DTM.getRowCount();
-			srcs.clear();
-			dests.clear();
+			change_text.clear();
 			for (int i = 0; i < rows; i++) {
-				srcs.add(DTM.getValueAt(i, 0).toString());
-				dests.add(DTM.getValueAt(i, 1).toString());
+				change_text.add(new Object[] {tm.getValueAt(i, 0).toString(),tm.getValueAt(i, 1).toString(),Integer.parseInt(tm.getValueAt(i, 2).toString())});
 			}
-			Object[] src = srcs.toArray();
-			Object[] dest = dests.toArray();
 			for (File file : files) {
-				log = StringReplacement.replace(file, src, dest, check_safe.isSelected());
-				String[] lo = log.split("\n");
-				for (String l : lo) {
-					String[] m = l.split("\t");
-					addRow(new String[] {l.substring(0, l.indexOf(m[m.length-1])).trim(), m[m.length-1]},LDTM,this.log);
+				log = StringReplacement.replace(file, change_text, check_safe.isSelected());
+				ArrayList<String> temp = scanTag("log",log,false);
+				ArrayList<String> temp2 = null;
+				ArrayList<String> temp3 = null;
+				for (String lo:temp) {
+					temp2 = scanTag("message",lo,false);
+					temp3 = scanTag("time",lo,false);
+					addRow(new String[] {temp2==null?"":temp2.get(0), temp3==null?"":temp3.get(0)},tms.get(-1),this.log);
 				}
 			}
 			break;
 		case 1:
 			XmlBlockReplacement.setSerial(System.currentTimeMillis());
-			rows = DTM_T.getRowCount();
 			tagtm.clear();
 			for (int i = 0; i < rows; i++) {
 				ArrayList<ArrayList<String>> tca = new ArrayList<ArrayList<String>>();
@@ -581,15 +721,15 @@ public class Layout_Text extends JFrame {
 				ArrayList<String> ca = new ArrayList<String>();
 				tca.add(ta);
 				tca.add(ca);
-				tagtm.put(DTM_T.getValueAt(i, 0).toString(), tca);
+				tagtm.put(tm.getValueAt(i, 0).toString(), tca);
 			}
 			for (int i = 0; i < rows; i++) {
-				ArrayList<ArrayList<String>> tca = tagtm.get(DTM_T.getValueAt(i, 0).toString());
+				ArrayList<ArrayList<String>> tca = tagtm.get(tm.getValueAt(i, 0).toString());
 				ArrayList<String> ta = tca.get(0);
 				ArrayList<String> ca = tca.get(1);
-				ta.add(DTM_T.getValueAt(i, 1).toString());
-				ca.add(DTM_T.getValueAt(i, 2).toString());
-				tagv.put(DTM_T.getValueAt(i, 0).toString(), DTM_T.getValueAt(i, 3).toString());
+				ta.add(tm.getValueAt(i, 1).toString());
+				ca.add(tm.getValueAt(i, 2).toString());
+				tagv.put(tm.getValueAt(i, 0).toString(), tm.getValueAt(i, 3).toString());
 			}
 			for (File file : files) {
 				Set<String> ks = tagtm.keySet();
@@ -610,22 +750,24 @@ public class Layout_Text extends JFrame {
 					var.add(tagv.get(k));
 				}
 				log = XmlBlockReplacement.replace(file, tar, car, var.toArray(), check_safe.isSelected());
-				String[] lo = log.split("\n");
-				for (String l : lo) {
-					String[] m = l.split("\t");
-					addRow(new String[] {l.substring(0, l.indexOf(m[m.length-1])).trim(), m[m.length-1]},LDTM,this.log);
+				ArrayList<String> temp = scanTag("log",log,false);
+				ArrayList<String> temp2 = null;
+				ArrayList<String> temp3 = null;
+				for (String lo:temp) {
+					temp2 = scanTag("message",lo,false);
+					temp3 = scanTag("time",lo,false);
+					addRow(new String[] {temp2==null?"":temp2.get(0), temp3==null?"":temp3.get(0)},tms.get(-1),this.log);
 				}
 			}
 			break;
 		case 2:
 			FilenameReplacement.setSerial(System.currentTimeMillis());
-			rows = DTM_F.getRowCount();
 			srcs_f.clear();
 			dests_f.clear();
 			for(int i=0;i<rows;i++) {
-				String before = (String) DTM_F.getValueAt(i, 0);
-				String after = (String) DTM_F.getValueAt(i, 1);
-				String index = (String) DTM_F.getValueAt(i, 2);
+				String before = (String) tm.getValueAt(i, 0);
+				String after = (String) tm.getValueAt(i, 1);
+				String index = (String) tm.getValueAt(i, 2);
 				if(index!=null&&!index.trim().isEmpty()) {
 					srcs_f.add(new Object[] {before,index});
 				}
@@ -636,17 +778,20 @@ public class Layout_Text extends JFrame {
 			}
 			for(File file:files) {
 				log = FilenameReplacement.replace(file, srcs_f, dests_f, check_safe.isSelected());
-				String[] lo = log.split("\n");
-				for (String l : lo) {
-					String[] m = l.split("\t");
-					addRow(new String[] {l.substring(0, l.indexOf(m[m.length-1])).trim(), m[m.length-1]},LDTM,this.log);
+				ArrayList<String> temp = scanTag("log",log,false);
+				ArrayList<String> temp2 = null;
+				ArrayList<String> temp3 = null;
+				for (String lo:temp) {
+					temp2 = scanTag("message",lo,false);
+					temp3 = scanTag("time",lo,false);
+					addRow(new String[] {temp2==null?"":temp2.get(0), temp3==null?"":temp3.get(0)},tms.get(-1),this.log);
 				}
 			}
 			break;
 		}
 		log = "END #COMMIT";
 		time = new Date();
-		addRow(new String[] {log, time.toString()},LDTM,this.log);
+		addRow(new String[] {log, time.toString()},tms.get(-1),this.log);
 	}
 
 	public void overrideConfig() {
@@ -668,10 +813,11 @@ public class Layout_Text extends JFrame {
 			SB.append("<path>" + convertToXML(path) + "</path>");
 			System.out.println("OVERRIDE TEXT");
 			SB.append("<text>");
-			for (int i = 0; i < srcs.size(); i++) {
+			for (Object[] ch:change_text) {
 				SB.append("<item>");
-				SB.append("<from>" + convertToXML((String) srcs.get(i)) + "</from>");
-				SB.append("<to>" + convertToXML((String) dests.get(i)) + "</to>");
+				SB.append("<from>" + convertToXML((String) ch[0]) + "</from>");
+				SB.append("<to>" + convertToXML((String) ch[1]) + "</to>");
+				SB.append("<mode>" + ch[2] + "</mode>");
 				SB.append("</item>");
 			}
 			SB.append("</text>");
@@ -719,7 +865,7 @@ public class Layout_Text extends JFrame {
 
 	public void move(int[] rows, int dir, DefaultTableModel DTM) {
 		int temp = -1;
-		String stemp = null;
+		Object stemp = null;
 		switch (dir) {
 		case -1:
 			for (int i = 0; i < rows.length - 1; i++) {
@@ -738,7 +884,7 @@ public class Layout_Text extends JFrame {
 					}
 				} else {
 					for(int ci=0;ci<DTM.getColumnCount();ci++) {
-						stemp = (String) DTM.getValueAt(rows[i], ci);
+						stemp = DTM.getValueAt(rows[i], ci);
 						DTM.setValueAt(DTM.getValueAt(rows[i]-1, ci), rows[i], ci);
 						DTM.setValueAt(stemp, rows[i] - 1, ci);
 					}
@@ -763,7 +909,7 @@ public class Layout_Text extends JFrame {
 					}
 				} else {
 					for(int ci=0;ci<DTM.getColumnCount();ci++) {
-						stemp = (String) DTM.getValueAt(rows[i], ci);
+						stemp = DTM.getValueAt(rows[i], ci);
 						DTM.setValueAt(DTM.getValueAt(rows[i]+1, ci), rows[i], ci);
 						DTM.setValueAt(stemp, rows[i] + 1, ci);
 					}
@@ -822,24 +968,23 @@ public class Layout_Text extends JFrame {
 	public void loadTopPanel(String T) {
 		panel_top.removeAll();
 		buttons.put("add", new JButton("add"));
-		buttons.put("remove", new JButton("remove"));
-		buttons.put("commit", new JButton("commit"));
-		buttons.put("up", new JButton("↑"));
-		buttons.put("down", new JButton("↓"));
 		JPanel panel_top_r0 = new JPanel();
 		JPanel panel_top_rb = new JPanel();
 		panel_top.add(panel_top_r0);
 		switch (T) {
 		case "text":
 			panel_top.setLayout(new GridLayout(2, 1));
-			panel_top_r0.setLayout(new GridLayout(2, 2));
+			panel_top_r0.setLayout(new GridLayout(2, 3));
 			panel_top_rb.setLayout(new GridLayout(1, 5));
 			JTextField input_before = new JTextField(17);
 			JTextField input_after = new JTextField(17);
+			
 			panel_top_r0.add(new JLabel("BEFORE:"));
 			panel_top_r0.add(new JLabel("AFTER:"));
+			panel_top_r0.add(new JLabel("MODE:"));
 			panel_top_r0.add(input_before);
 			panel_top_r0.add(input_after);
+			panel_top_r0.add(buttons.get("text_mode"));
 			panel_top.setMinimumSize(
 					new Dimension(panel_main.getWidth(), input_before.getHeight() + buttons.get("add").getHeight()));
 			buttons.get("add").addActionListener(new ActionListener() {
@@ -851,53 +996,9 @@ public class Layout_Text extends JFrame {
 					String after = input_after.getText();
 					/*srcs.add(before);
 					dests.add(after);*/
-					addRow(new String[] {before,after},DTM,body);
+					JButtonWithData mbutt = (JButtonWithData) buttons.get("text_mode");
+					addRow(new Object[] {before,after, mbutt.getData()},tms.get(mode),body);
 					System.out.println("ADD");
-				}
-
-			});
-
-			buttons.get("remove").addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					int[] inds = body.getSelectedRows();
-					ArrayList<Integer> removedinds = new ArrayList<Integer>();
-					for (int i : inds) {
-						for (int ri : removedinds) {
-							if (ri <= i) {
-								i--;
-							}
-						}
-						/*srcs.remove(i);
-						dests.remove(i);*/
-						DTM.removeRow(i);
-						removedinds.add(i);
-					}
-					removedinds.clear();
-					System.out.println("REMOVE");
-				}
-
-			});
-			buttons.get("up").addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					int rows[] = body.getSelectedRows();
-					move(rows, -1, DTM);
-				}
-
-			});
-
-			buttons.get("down").addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					int rows[] = body.getSelectedRows();
-					move(rows, 1, DTM);
 				}
 
 			});
@@ -940,51 +1041,8 @@ public class Layout_Text extends JFrame {
 					String type = (String) input_type.getSelectedItem();
 					String constraint = input_constraint.getText();
 					String value = input_value.getText();
-					addRow(new String[] {tag, type, constraint, value},DTM_T,body);
+					addRow(new Object[] {tag, type, constraint, value},tms.get(mode),body);
 					System.out.println("ADD");
-				}
-
-			});
-
-			buttons.get("remove").addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					int[] inds = body.getSelectedRows();
-					ArrayList<Integer> removedinds = new ArrayList<Integer>();
-					for (int i : inds) {
-						for (int ri : removedinds) {
-							if (ri <= i) {
-								i--;
-							}
-						}
-						DTM_T.removeRow(i);
-						removedinds.add(i);
-					}
-					removedinds.clear();
-					System.out.println("REMOVE");
-				}
-
-			});
-			buttons.get("up").addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					int rows[] = body.getSelectedRows();
-					move(rows, -1, DTM_T);
-				}
-
-			});
-
-			buttons.get("down").addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					int rows[] = body.getSelectedRows();
-					move(rows, 1, DTM_T);
 				}
 
 			});
@@ -995,9 +1053,10 @@ public class Layout_Text extends JFrame {
 			panel_top_rb.setLayout(new GridLayout(1, 5));
 			JTextField input_before_name = new JTextField(17);
 			JTextField input_after_name = new JTextField(17);
-			JButtonWithData button_index = new JButtonWithData("INDEX");
+			JButtonWithData button_index = (JButtonWithData) buttons.get("filename_index");
 			JSpinner input_index = new JSpinner(new SpinnerNumberModel(0,0,100,1));
-			button_index.setComponents(new JComponent[] {input_index});
+			button_index.setTargets(new JComponent[] {input_index});
+			input_index.setVisible((boolean) button_index.getData());
 			panel_top_r0.add(new JLabel("BEFORE:"));
 			panel_top_r0.add(new JLabel("AFTER:"));
 			panel_top_r0.add(button_index);
@@ -1014,7 +1073,7 @@ public class Layout_Text extends JFrame {
 					String before = input_before_name.getText();
 					String after = input_after_name.getText();
 					boolean flag = false;
-					flag = button_index.getToggle();
+					flag = (boolean) button_index.getData();
 					Object[] before_full = flag?new String[2]:new String[1];
 					before_full[0]=before;
 					if(flag) {
@@ -1022,68 +1081,13 @@ public class Layout_Text extends JFrame {
 					}
 					/*srcs_f.add(before_full);
 					dests_f.add(after);*/
-					addRow(new Object[] { before_full[0],after,flag? before_full[1]:""},DTM_F,body);
+					addRow(new Object[] { before_full[0],after,flag? before_full[1]:""},tms.get(mode),body);
 					System.out.println("ADD");
-				}
-
-			});
-
-			buttons.get("remove").addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					int[] inds = body.getSelectedRows();
-					ArrayList<Integer> removedinds = new ArrayList<Integer>();
-					for (int i : inds) {
-						for (int ri : removedinds) {
-							if (ri <= i) {
-								i--;
-							}
-						}
-						/*srcs_f.remove(i);
-						dests_f.remove(i);*/
-						DTM_F.removeRow(i);
-						removedinds.add(i);
-					}
-					removedinds.clear();
-					System.out.println("REMOVE");
-				}
-
-			});
-			buttons.get("up").addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					int rows[] = body.getSelectedRows();
-					move(rows, -1, DTM_F);
-				}
-
-			});
-
-			buttons.get("down").addActionListener(new ActionListener() {
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					// TODO Auto-generated method stub
-					int rows[] = body.getSelectedRows();
-					move(rows, 1, DTM_F);
 				}
 
 			});
 			break;
 		}
-		
-		buttons.get("commit").addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
-				new Thread(new Demo()).start();
-			}
-
-		});
 		panel_top_rb.add(buttons.get("add"));
 		panel_top_rb.add(buttons.get("remove"));
 		panel_top_rb.add(buttons.get("up"));
@@ -1184,31 +1188,7 @@ public class Layout_Text extends JFrame {
 	public void setSizeThreshold(double sizeThreshold) {
 		this.sizeThreshold = sizeThreshold;
 	}
-
-	public DefaultTableModel getDTM() {
-		return DTM;
-	}
-
-	public void setDTM(DefaultTableModel dTM) {
-		DTM = dTM;
-	}
-
-	public DefaultTableModel getDTM_T() {
-		return DTM_T;
-	}
-
-	public void setDTM_T(DefaultTableModel dTM_T) {
-		DTM_T = dTM_T;
-	}
-
-	public DefaultTableModel getDTM_F() {
-		return DTM_F;
-	}
-
-	public void setDTM_F(DefaultTableModel dTM_F) {
-		DTM_F = dTM_F;
-	}
-
+	
 	public JTable getBody() {
 		return body;
 	}
@@ -1224,6 +1204,8 @@ public class Layout_Text extends JFrame {
 	public void setLog(JTable log) {
 		this.log = log;
 	}
-	
-	
+
+	public Map<Integer, DefaultTableModel> getTms() {
+		return tms;
+	}
 }
