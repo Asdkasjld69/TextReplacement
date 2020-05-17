@@ -82,6 +82,7 @@ public class Layout_Text extends JFrame {
 	private JPanel panel_main;
 	private JPanel panel_left;
 	private Map<String, JButton> buttons;
+	private Map<Object, Boolean> qualify;
 	private Dimension size;
 	private double ratio;
 	private JDialog dialog_about;
@@ -112,6 +113,7 @@ public class Layout_Text extends JFrame {
 		config_path = new File("config");
 		config = new File(config_path.getPath() + "/config.xml");
 		buttons = new HashMap<String, JButton>();
+		qualify = new HashMap<Object, Boolean>();
 		JButton button_remove = new JButton("remove");
 		JButton button_up = new JButton("↑");
 		JButton button_down = new JButton("↓");
@@ -275,30 +277,38 @@ public class Layout_Text extends JFrame {
 			public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
 				// TODO Auto-generated method stub
 				Component cell = super.prepareRenderer(renderer, row, column);
-				Color back = Color.white;
+				Color back = Color.WHITE;
+				Color fore = Color.BLACK;
 				switch(mode) {
 				case 0:
+					boolean flag = true;
 					if(column==2) {
 						switch(Integer.parseInt(DTM.getValueAt(row, column).toString())) {
-						case 1: back = new Color(128,255,196);break;
-						case 2:	back = new Color(128,196,255);break;
-						case 3: back = new Color(196,128,255);break;
+						case 1: back = new Color(96,224,164);break;
+						case 2:	back = new Color(96,164,224);break;
+						case 3: back = new Color(164,96,224);break;
 						}
 					}
-					else {
-						back = Color.WHITE;
-					}break;
-				default:
-					back = Color.WHITE;
+					if(Integer.parseInt(DTM.getValueAt(row, 2).toString())>0) {
+						flag = checkRegrexSyntax(DTM.getValueAt(row, 0).toString());
+						if(!flag) {
+							back = new Color(224,64,64);
+						}
+						qualify.put(new int[] {row, column}, flag);
+					}
+					break;
 				}
+				
 				int[] rows = getSelectedRows();
 				for(int i=0;i<rows.length;i++) {
 					if(row==rows[i]) {
 						back = back.darker();
+						fore = Color.WHITE;
 						break;
 					}
 				}
 				cell.setBackground(back);
+				cell.setForeground(fore);
 				return cell;
 			}
 			
@@ -1207,5 +1217,21 @@ public class Layout_Text extends JFrame {
 
 	public Map<Integer, DefaultTableModel> getTms() {
 		return tms;
+	}
+	
+	public Map<Object, Boolean> getQualify() {
+		return qualify;
+	}
+
+	public boolean checkRegrexSyntax(String reg) {
+		boolean flag = true;
+		String test = "TEST";
+		try {
+			test.matches(reg);
+		}
+		catch(Exception e) {
+			flag = false;
+		}
+		return flag;
 	}
 }

@@ -163,11 +163,15 @@ public class Demo implements Runnable {
 			JOptionPane.showConfirmDialog(L, "Non-existing path", "Error", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
+		L.applyConfig();
+		if(L.getQualify().containsValue(false)) {
+			JOptionPane.showConfirmDialog(L, "Regrex Syntax Error!", "Error", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
 		if(JOptionPane.showConfirmDialog(L,"<html>All Files following the <font color='red'><b>Regu</b></font> under <u>\""+path.getAbsolutePath()+"\"</u> will be checked recrusively!</html>","Are you sure?" ,JOptionPane.OK_OPTION)!=0) {
 			return;
 		}
 		L.setState(1);
-		L.applyConfig();
 		ArrayList<File> files = iterFile(path,L.getRegu(),L.getDepth());
 		if(ABORT_FLAG) {
 			L.setState(0);
