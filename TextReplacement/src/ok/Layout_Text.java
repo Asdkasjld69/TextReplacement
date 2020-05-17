@@ -173,6 +173,15 @@ public class Layout_Text extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
+				qualify.clear();
+				int rows = tms.get(mode).getRowCount();
+				switch(mode) {
+				case 0:for(int i=0;i<rows;i++) {
+							qualify.put(new Object[] {i, 0},checkRegrexSyntax(tms.get(0).getValueAt(i, 0).toString()));
+						}
+						break;
+				}
+				
 				new Thread(new Demo()).start();
 			}
 
@@ -294,7 +303,6 @@ public class Layout_Text extends JFrame {
 						if(!flag) {
 							back = new Color(224,64,64);
 						}
-						qualify.put(new int[] {row, column}, flag);
 					}
 					break;
 				}
@@ -338,7 +346,7 @@ public class Layout_Text extends JFrame {
 					if (message.matches("FINISHED(.*)")) {
 						comp.setBackground(new Color(128, 255, 128));
 					}
-					if (message.equals("FAILED")) {
+					if (message.matches("FAILED.*")) {
 						comp.setBackground(new Color(255, 96, 96));
 						comp.setForeground(new Color(255, 255, 255));
 					}
