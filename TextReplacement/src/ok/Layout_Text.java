@@ -61,7 +61,7 @@ public class Layout_Text extends JFrame {
 	private static final String[] modes = {"Text","Tag","Filename"};
 	private static Map<String,String> signs;
 	private static Map<Integer,DefaultTableModel> tms;
-	private String regu;
+	private String regrex;
 	private String path;
 	private File config_path;
 	private File config;
@@ -70,7 +70,7 @@ public class Layout_Text extends JFrame {
 	private ArrayList<Object> dests_f;
 	private HashMap<String, ArrayList<ArrayList<String>>> tagtm;
 	private HashMap<String, String> tagv;
-	private JTextField input_regu;
+	private JTextField input_regrex;
 	private JTextField input_path;
 	private JSpinner input_depth;
 	private JSpinner input_size;
@@ -108,7 +108,7 @@ public class Layout_Text extends JFrame {
 		signs.put("&", "&amp;");
 		signs.put("'", "&apos;");
 		signs.put("\"", "&quot;");
-		regu = "";
+		regrex = "";
 		path = "path";
 		config_path = new File("config");
 		config = new File(config_path.getPath() + "/config.xml");
@@ -271,7 +271,7 @@ public class Layout_Text extends JFrame {
 		dests_f = new ArrayList<Object>();
 		tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
 		tagv = new HashMap<String, String>();
-		input_regu = new JTextField(20);
+		input_regrex = new JTextField(20);
 		input_path = new JTextField();
 		input_depth = new JSpinner(new SpinnerNumberModel(0,0,100,1));
 		input_size = new JSpinner(new SpinnerNumberModel(1.0,0.0,512.0,1.0));
@@ -464,13 +464,13 @@ public class Layout_Text extends JFrame {
 		panel_bottom.setLayout(new FlowLayout());
 		panel_left.setLayout(new BorderLayout());
 
-		JLabel label_regu = new JLabel("Regu:");
+		JLabel label_regrex = new JLabel("Regrex:");
 		JLabel drag = new JLabel(" ");
 		
 		Cursor cu = new Cursor(Cursor.E_RESIZE_CURSOR);
 		drag.setCursor(cu);
-		panel_bottom.add(label_regu);
-		panel_bottom.add(input_regu);
+		panel_bottom.add(label_regrex);
+		panel_bottom.add(input_regrex);
 		panel_bottom.add(new JLabel("Depth:"));
 		panel_bottom.add(input_depth);
 		panel_bottom.add(new JLabel("Size:"));
@@ -573,9 +573,9 @@ public class Layout_Text extends JFrame {
 		ArrayList<String> temp = null;
 		ArrayList<String> temp2 = null;
 		ArrayList<String> temp3 = null;
-		temp = scanTag("regu",config,false);
+		temp = scanTag("regrex",config,false);
 		if(temp != null) {
-			regu = convertToString(temp.get(0));
+			regrex = convertToString(temp.get(0));
 		}
 		temp = scanTag("path",config,false);
 		if(temp != null) {
@@ -674,14 +674,14 @@ public class Layout_Text extends JFrame {
 	}
 	
 	public void applyConfig() {
-		setRegu(input_regu.getText());
+		setRegrex(input_regrex.getText());
 		setPath(input_path.getText());
 		setSizeThreshold((double) input_size.getValue());
 	}
 	
 	public void loadInputs() {
 		input_path.setText(path);
-		input_regu.setText(regu);
+		input_regrex.setText(regrex);
 		for(int i=0;i<change_text.size();i++) {
 			addRow(change_text.get(i),tms.get(0),body);
 		}
@@ -813,7 +813,7 @@ public class Layout_Text extends JFrame {
 	}
 
 	public void overrideConfig() {
-		regu = input_regu.getText();
+		regrex = input_regrex.getText();
 		StringBuffer SB = new StringBuffer();
 		BufferedWriter BW = null;
 		if (!config.exists()) {
@@ -827,7 +827,7 @@ public class Layout_Text extends JFrame {
 		try {
 			BW = new BufferedWriter(new FileWriter(config));
 			SB.append("<config>");
-			SB.append("<regu>" + convertToXML(regu) + "</regu>");
+			SB.append("<regrex>" + convertToXML(regrex) + "</regrex>");
 			SB.append("<path>" + convertToXML(path) + "</path>");
 			System.out.println("OVERRIDE TEXT");
 			SB.append("<text>");
@@ -942,8 +942,8 @@ public class Layout_Text extends JFrame {
 		}
 	}
 
-	public String getRegu() {
-		return regu;
+	public String getRegrex() {
+		return regrex;
 	}
 
 	public String getPath() {
@@ -1191,8 +1191,8 @@ public class Layout_Text extends JFrame {
 		return d+1;
 	}
 
-	public void setRegu(String regu) {
-		this.regu = regu;
+	public void setRegrex(String regrex) {
+		this.regrex = regrex;
 	}
 
 	public void setPath(String path) {

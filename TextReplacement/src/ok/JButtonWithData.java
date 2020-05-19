@@ -86,19 +86,7 @@ public class JButtonWithData extends JButton {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				index++;
-				index_text++;
-				if(index>=cycle.length) {
-					index = 0;
-				}
-				if(index_text>=cycle_text.length) {
-					index_text = 0;
-				}
-				setTimespressed(getTimespressed() + 1);
-				lastpress = System.currentTimeMillis();
-				setBackground(colors.get(cycle[index]));
-				setText(cycle_text[index_text]);
-				toggleTargets();
+				cycle();
 			}
 			
 		});
@@ -134,6 +122,21 @@ public class JButtonWithData extends JButton {
 	}
 	public void setTargets(JComponent[] targets) {
 		this.targets = targets;
+	}
+	public void cycle() {
+		index++;
+		index_text++;
+		if(index>=cycle.length) {
+			index = 0;
+		}
+		if(index_text>=cycle_text.length) {
+			index_text = 0;
+		}
+		setTimespressed(getTimespressed() + 1);
+		lastpress = System.currentTimeMillis();
+		setBackground(colors.get(cycle[index]));
+		setText(cycle_text[index_text]);
+		toggleTargets();
 	}
 	
 }

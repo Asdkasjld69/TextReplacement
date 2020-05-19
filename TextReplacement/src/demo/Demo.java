@@ -74,7 +74,7 @@ public class Demo implements Runnable {
 					}
 					catch(Exception e) {
 						ABORT_FLAG = true;
-						L.addRow(new String[] {"Regu Syntax Error #FAILED", new Date().toString()}, L.getTms().get(-1), L.getBody());
+						L.addRow(new String[] {"Filename Regrex Syntax Error #FAILED", new Date().toString()}, L.getTms().get(-1), L.getBody());
 					}
 					if(pathname.isDirectory()||flag) {
 						return true;
@@ -168,11 +168,11 @@ public class Demo implements Runnable {
 			JOptionPane.showConfirmDialog(L, "Regrex Syntax Error!", "Error", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		if(JOptionPane.showConfirmDialog(L,"<html>All Files following the <font color='red'><b>Regu</b></font> under <u>\""+path.getAbsolutePath()+"\"</u> will be checked recrusively!</html>","Are you sure?" ,JOptionPane.OK_OPTION)!=0) {
+		if(JOptionPane.showConfirmDialog(L,"<html>All Files following the <font color='red'><b>Regrex</b></font> under <u>\""+path.getAbsolutePath()+"\"</u> will be checked recrusively!</html>","Are you sure?" ,JOptionPane.OK_OPTION)!=0) {
 			return;
 		}
 		L.setState(1);
-		ArrayList<File> files = iterFile(path,L.getRegu(),L.getDepth());
+		ArrayList<File> files = iterFile(path,L.getRegrex(),L.getDepth());
 		if(ABORT_FLAG) {
 			L.setState(0);
 			return;
