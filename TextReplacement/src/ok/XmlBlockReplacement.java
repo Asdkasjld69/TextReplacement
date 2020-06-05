@@ -6,8 +6,12 @@ package ok;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -37,7 +41,7 @@ public class XmlBlockReplacement {
 			}
 		}
 		try {
-			BR = new BufferedReader(new FileReader(F));
+			BR = new BufferedReader(new InputStreamReader(new FileInputStream(F),"UTF-8"));
 			if(!BR.ready()) {
 				time = new Date();
 				log.append("<log><message>"+filename+" NOT READY #FAILED!!!</message><time>"+time.toString()+"</time></log>");
@@ -131,7 +135,7 @@ public class XmlBlockReplacement {
 			}
 			BR.close();
 			File tmp = new File(filepath+".new");
-			BW = new BufferedWriter(new FileWriter(tmp));
+			BW = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp),"UTF-8"));
 			BW.write(SB.toString());
 			BW.close();
 			if(!safe) {

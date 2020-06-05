@@ -8,7 +8,9 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -172,7 +174,7 @@ public class StringReplacement {
 		else {
 			//Ordinary
 			try {
-				BR = new BufferedReader(new FileReader(F));
+				BR = new BufferedReader(new InputStreamReader(new FileInputStream(F),"UTF-8"));
 				if(!BR.ready()) {
 					time = new Date();
 					log.append("<log><message>"+filename+" NOT READY #FAILED!!!</message><time>"+time.toString()+"</time></log>");
@@ -277,8 +279,9 @@ public class StringReplacement {
 				}
 				BR.close();
 				File tmp = new File(filepath+".new");
-				BW = new BufferedWriter(new FileWriter(tmp));
+				BW = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp),"UTF-8"));
 				BW.write(SB.toString());
+				System.out.println(SB.toString());
 				BW.close();
 				if(!safe) {
 					F.delete();

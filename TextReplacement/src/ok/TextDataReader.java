@@ -5,7 +5,10 @@ package ok;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.net.URLEncoder;
 import java.util.Date;
 
 /**
@@ -19,7 +22,7 @@ public class TextDataReader {
 		String[] ret = {"",""};
 		StringBuffer log = new StringBuffer();
 		try {
-			BR = new BufferedReader(new FileReader(F));
+			BR = new BufferedReader(new InputStreamReader(new FileInputStream(F),"UTF-8"));
 			Date time = new Date();
 			if(!BR.ready()) {
 				log.append("<log><message>"+"READ "+F.getName()+" #FAILED!!!</message><time>"+time.toString()+"</time></log>");

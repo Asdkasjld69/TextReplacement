@@ -1037,8 +1037,9 @@ public class Layout_Text extends JFrame {
 			}
 			JTextField input_constraint = new JTextField();
 			JTextArea input_value = new JTextArea();
+			input_value.setLineWrap(true);
 			JScrollPane vs = new JScrollPane(input_value);
-			vs.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			//vs.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 			vs.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			panel_top_r0.add(new JLabel("TAG:"));
 			panel_top_r0.add(new JLabel("TYPE:"));
