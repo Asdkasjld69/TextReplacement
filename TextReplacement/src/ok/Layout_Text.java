@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -59,7 +60,7 @@ public class Layout_Text extends JFrame {
 	private static final String[] headers_f = { "Before", "After", "Index"};
 	private static final String[] lheaders = { "Message", "Time" };
 	private static final String[] modes = {"Text","Tag","Filename"};
-	private static Map<String,String> signs;
+	private static List<String[]> signs;
 	private static Map<Integer,DefaultTableModel> tms;
 	private String regrex;
 	private String path;
@@ -102,12 +103,13 @@ public class Layout_Text extends JFrame {
 
 	private void init() {
 		// TODO Auto-generated method stub
-		signs = new HashMap<String,String>();
-		signs.put("<", "&lt;");
-		signs.put(">", "&gt;");
-		signs.put("&", "&amp;");
-		signs.put("'", "&apos;");
-		signs.put("\"", "&quot;");
+		
+		signs = new ArrayList<String[]>();
+		signs.add(new String[] {"&", "&amp;"});
+		signs.add(new String[] {"<", "&lt;"});
+		signs.add(new String[] {">", "&gt;"});
+		signs.add(new String[] {"'", "&apos;"});
+		signs.add(new String[] {"\"", "&quot;"});
 		regrex = "";
 		path = "path";
 		config_path = new File("config");
@@ -873,6 +875,7 @@ public class Layout_Text extends JFrame {
 			SB.append("</filename>");
 			SB.append("</config>");
 			System.out.println(SB.toString());
+			System.out.println("OVERRIDING!");
 			BW.write(SB.toString());
 			BW.close();
 		} catch (IOException e) {
@@ -1161,24 +1164,16 @@ public class Layout_Text extends JFrame {
 	
 	public static String convertToXML(String s) {
 		String ret = s;
-		Set<String> ks = signs.keySet();
-		Iterator<String> it = ks.iterator();
-		String sign = "";
-		while(it.hasNext()) {
-			sign = it.next();
-			ret = ret.replace(sign, signs.get(sign));
+		for(String[] sign:signs) {
+			ret = ret.replace(sign[0], sign[1]);
 		}
 		return ret;
 	}
 	
 	public static String convertToString(String s) {
 		String ret = s;
-		Set<String> ks = signs.keySet();
-		Iterator<String> it = ks.iterator();
-		String sign = "";
-		while(it.hasNext()) {
-			sign = it.next();
-			ret = ret.replace(signs.get(sign),sign);
+		for(String[] sign:signs) {
+			ret = ret.replace(sign[1], sign[0]);
 		}
 		return ret;
 	}
