@@ -74,7 +74,7 @@ public class Demo implements Runnable {
 					}
 					catch(Exception e) {
 						ABORT_FLAG = true;
-						L.addRow(new String[] {"Filename Regrex Syntax Error #FAILED", new Date().toString()}, L.getTms().get(-1), L.getBody());
+						L.addRow(new String[] {"Filename Regrex Syntax Error #FAILED", new Date().toString()}, L.getTms().get(-1), L.getLog());
 					}
 					if(pathname.isDirectory()||flag) {
 						return true;

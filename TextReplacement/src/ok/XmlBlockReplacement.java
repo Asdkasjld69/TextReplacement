@@ -57,7 +57,6 @@ public class XmlBlockReplacement {
 				tline = line;
 				for(int i=0;i<tag.size();i++) {
 					if(line.contains("<"+tag.get(i)[0])){
-						flag = true;
 						while(!line.contains(">")) {
 							line.replace("\n", "");
 							line += BR.readLine();
@@ -65,20 +64,10 @@ public class XmlBlockReplacement {
 						HashMap<String,Boolean> ofm = new HashMap<String,Boolean>();
 						for(int n=0;n<src.get(i).length;n++) {
 							if(!((String) tag.get(i)[n+1]).contains("not")) {
-								ofm.put((String)tag.get(i)[n+1],false);
+								ofm.put((String)tag.get(i)[n+1],line.contains((String)src.get(i)[n]));
 							}
 							else {
-								ofm.put((String)tag.get(i)[n+1],true);
-							}
-						}
-						for(int n=0;n<src.get(i).length;n++) {
-							if(line.contains((String)src.get(i)[n])) {
-								if(!((String) tag.get(i)[n+1]).contains("not")) {
-									ofm.put((String)tag.get(i)[n+1],true);
-								}
-								else {
-									ofm.put((String)tag.get(i)[n+1],false);
-								}
+								ofm.put((String)tag.get(i)[n+1],!line.contains((String)src.get(i)[n]));
 							}
 						}
 						Set<String> ks = ofm.keySet();
@@ -88,7 +77,6 @@ public class XmlBlockReplacement {
 							t = it.next();
 							if(t.startsWith("not")) {
 								String notr = t.replaceFirst("not", "");
-								flag = false;
 								if(ofm.containsKey(notr)) {
 									if(ofm.get(t)&&ofm.get(notr)) {
 										flag = true;break;
