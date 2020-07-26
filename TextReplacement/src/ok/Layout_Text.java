@@ -735,7 +735,7 @@ public class Layout_Text extends JFrame {
 		switch(mode) {
 		case 0:
 			StringReplacement.setSerial(System.currentTimeMillis());
-			StringReplacement.setPath(path);
+			StringReplacement.setPath(new File(path).getAbsolutePath());
 			change_text.clear();
 			for (int i = 0; i < rows; i++) {
 				change_text.add(new Object[] {tm.getValueAt(i, 0).toString(),tm.getValueAt(i, 1).toString(),Integer.parseInt(tm.getValueAt(i, 2).toString())});
@@ -754,7 +754,7 @@ public class Layout_Text extends JFrame {
 			break;
 		case 1:
 			XmlBlockReplacement.setSerial(System.currentTimeMillis());
-			XmlBlockReplacement.setPath(path);
+			XmlBlockReplacement.setPath(new File(path).getAbsolutePath());
 			tagtm.clear();
 			for (int i = 0; i < rows; i++) {
 				ArrayList<ArrayList<String>> tca = new ArrayList<ArrayList<String>>();
@@ -803,7 +803,7 @@ public class Layout_Text extends JFrame {
 			break;
 		case 2:
 			FilenameReplacement.setSerial(System.currentTimeMillis());
-			FilenameReplacement.setPath(path);
+			FilenameReplacement.setPath(new File(path).getAbsolutePath());
 			srcs_f.clear();
 			dests_f.clear();
 			for(int i=0;i<rows;i++) {
