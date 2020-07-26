@@ -15,7 +15,7 @@ import java.util.Date;
  */
 public class TextDataReader {
 
-	public static String[] read(File F) {
+	public static String[] read(File F,boolean flag_empty) {
 		BufferedReader BR = null;
 		String[] ret = {"",""};
 		StringBuffer log = new StringBuffer();
@@ -33,6 +33,9 @@ public class TextDataReader {
 			log.append("<log><message>"+"READ "+F.getName()+" #STARTED</message><time>"+time.toString()+"</time></log>");
 			StringBuffer SB = new StringBuffer();
 			while((line=BR.readLine())!=null) {
+				if(line.trim().length()<=0 && !flag_empty) {
+					continue;
+				}
 				SB.append(line+"\n");
 			}
 			BR.close();

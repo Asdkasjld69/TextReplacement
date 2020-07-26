@@ -58,8 +58,9 @@ public class Layout_Text extends JFrame {
 	private static final String[] headers = { "Before", "After", "Mode" };
 	private static final String[] headers_t = { "Tag", "Type", "Match", "Value" };
 	private static final String[] headers_f = { "Before", "After", "Index"};
+	private static final String[] headers_a = { "File", "Array", "Length"};
 	private static final String[] lheaders = { "Message", "Time" };
-	private static final String[] modes = {"Text","Tag","Filename"};
+	private static final String[] modes = {"Text","Tag","Filename","ToArray"};
 	private static List<String[]> signs;
 	private static Map<Integer,DefaultTableModel> tms;
 	private String regrex;
@@ -249,6 +250,7 @@ public class Layout_Text extends JFrame {
 				}
 			}
 		};
+		DefaultTableModel DTM_A = new DefaultTableModel(null, headers_a);
 		DefaultTableModel LDTM = new DefaultTableModel(null, lheaders) {
 
 			/**
@@ -268,6 +270,7 @@ public class Layout_Text extends JFrame {
 		tms.put(0, DTM);
 		tms.put(1, DTM_T);
 		tms.put(2, DTM_F);
+		tms.put(3, DTM_A);
 		change_text = new ArrayList<Object[]>();
 		srcs_f = new ArrayList<Object[]>();
 		dests_f = new ArrayList<Object>();
@@ -396,6 +399,10 @@ public class Layout_Text extends JFrame {
 					loadTopPanel("filename");
 					body.setModel(DTM_F);
 					setTitle("Replace Filename");break;
+				case 3:
+					loadTopPanel("array");
+					body.setModel(DTM_A);
+					setTitle("To Array");break;
 				}
 				for(int i=0;i<switchmode.getItemCount();i++) {
 					if(i==mode) {
@@ -569,7 +576,7 @@ public class Layout_Text extends JFrame {
 				e.printStackTrace();
 			}
 		}
-		String[] conf = TextDataReader.read(config);
+		String[] conf = TextDataReader.read(config,true);
 		System.out.println(conf[0]);
 		String config = conf[0];
 		ArrayList<String> temp = null;
@@ -808,6 +815,36 @@ public class Layout_Text extends JFrame {
 				}
 			}
 			break;
+		case 3:
+			for(int i=0;i<tms.get(mode).getRowCount();i++) {
+				tms.get(mode).removeRow(0);
+			}
+			for(File file:files) {
+				String[] ret = TextDataReader.read(file,false);
+				StringBuffer arrs = new StringBuffer();
+				boolean isFirst = true;
+				arrs.append("[");
+				for(String s:ret[0].split("\n")) {
+					if(!isFirst) {
+						arrs.append(",");
+					}
+					arrs.append("\""+s+"\"");
+					isFirst = false;
+				}
+				arrs.append("]");
+				
+				log = ret[1];
+				addRow(new Object[] {file.getName(),arrs.toString(),ret[0].split("\n").length},tms.get(mode),this.body);
+				ArrayList<String> temp = scanTag("log",log,false);
+				ArrayList<String> temp2 = null;
+				ArrayList<String> temp3 = null;
+				for (String lo:temp) {
+					temp2 = scanTag("message",lo,false);
+					temp3 = scanTag("time",lo,false);
+					addRow(new String[] {temp2==null?"":temp2.get(0), temp3==null?"":temp3.get(0)},tms.get(-1),this.log);
+				}
+			}
+			break;
 		}
 		log = "END #COMMIT";
 		time = new Date();
@@ -991,7 +1028,6 @@ public class Layout_Text extends JFrame {
 		buttons.put("add", new JButton("add"));
 		JPanel panel_top_r0 = new JPanel();
 		JPanel panel_top_rb = new JPanel();
-		panel_top.add(panel_top_r0);
 		switch (T) {
 		case "text":
 			panel_top.setLayout(new GridLayout(2, 1));
@@ -1109,12 +1145,24 @@ public class Layout_Text extends JFrame {
 
 			});
 			break;
+		case "array":
+			panel_top.setLayout(new GridLayout(1, 1));
+			panel_top_r0.setLayout(new GridLayout(1, 2));
+			panel_top_rb.setLayout(new GridLayout(1, 1));
+			break;
 		}
-		panel_top_rb.add(buttons.get("add"));
-		panel_top_rb.add(buttons.get("remove"));
-		panel_top_rb.add(buttons.get("up"));
-		panel_top_rb.add(buttons.get("down"));
-		panel_top_rb.add(buttons.get("commit"));
+		switch(T) {
+		case "array":
+			panel_top_rb.add(buttons.get("commit"));
+			break;
+		default:
+			panel_top.add(panel_top_r0);
+			panel_top_rb.add(buttons.get("add"));
+			panel_top_rb.add(buttons.get("remove"));
+			panel_top_rb.add(buttons.get("up"));
+			panel_top_rb.add(buttons.get("down"));
+			panel_top_rb.add(buttons.get("commit"));
+		}
 		panel_top.add(panel_top_rb);
 		if (System.currentTimeMillis() - LAUNCH_TIME > 1000) {
 			adaptSize();
