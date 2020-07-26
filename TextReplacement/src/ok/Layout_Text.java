@@ -465,7 +465,7 @@ public class Layout_Text extends JFrame {
 		this.setJMenuBar(mbar);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setTitle(Demo.title);
-		Dimension minsize = new Dimension(640, 400);
+		Dimension minsize = new Dimension(648, 400);
 		this.setMinimumSize(minsize);
 		this.setSize(size);
 		this.setLocation((dim.width - this.getWidth()) / 2, (dim.height - this.getHeight()) / 2);
