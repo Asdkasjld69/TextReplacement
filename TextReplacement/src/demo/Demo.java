@@ -70,7 +70,7 @@ public class Demo implements Runnable {
 					}
 					boolean flag = false;
 					try {
-						flag = (pathname.getName().matches(suffix)&&pathname.length()<=L.getSizeThreshold()*1024*1024);
+						flag = (pathname.getName().matches(suffix)&&pathname.length()<=(double)L.getInput_size().getValue()*1024*1024);
 					}
 					catch(Exception e) {
 						ABORT_FLAG = true;

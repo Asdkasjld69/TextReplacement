@@ -60,7 +60,7 @@ public class Layout_Text extends JFrame {
 	private static final String[] headers_f = { "Before", "After", "Index"};
 	private static final String[] headers_a = { "File", "Array", "Length"};
 	private static final String[] lheaders = { "Message", "Time" };
-	private static final String[] modes = {"Text","Tag","Filename","ToArray"};
+	private static final String[] modes = {"Text","Tag","Filename","Array","Encode"};
 	private static List<String[]> signs;
 	private static Map<Integer,DefaultTableModel> tms;
 	private String regrex;
@@ -91,7 +91,7 @@ public class Layout_Text extends JFrame {
 	private JDialog error;
 	private JLabel intro;
 	private JCheckBox check_safe;
-	private double sizeThreshold;
+	private JComboBox<String> encode;
 	private boolean stopflag;
 	private int state;
 	private int mode;
@@ -117,6 +117,11 @@ public class Layout_Text extends JFrame {
 		config = new File(config_path.getPath() + "/config.xml");
 		buttons = new HashMap<String, JButton>();
 		qualify = new HashMap<Object, Boolean>();
+		encode = new JComboBox<String>();
+		encode.addItem("UTF-8");
+		encode.addItem("Unicode");
+		encode.addItem("GBK");
+		encode.setBackground(Color.WHITE);
 		JButton button_remove = new JButton("remove");
 		JButton button_up = new JButton("↑");
 		JButton button_down = new JButton("↓");
@@ -372,7 +377,6 @@ public class Layout_Text extends JFrame {
 		intro = new JLabel(
 				"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
 		check_safe = new JCheckBox("Safe");
-		sizeThreshold = 1;
 		stopflag = false;
 		state = 0;
 		mode = 0;
@@ -461,7 +465,7 @@ public class Layout_Text extends JFrame {
 		this.setJMenuBar(mbar);
 		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		this.setTitle(Demo.title);
-		Dimension minsize = new Dimension(600, 400);
+		Dimension minsize = new Dimension(640, 400);
 		this.setMinimumSize(minsize);
 		this.setSize(size);
 		this.setLocation((dim.width - this.getWidth()) / 2, (dim.height - this.getHeight()) / 2);
@@ -486,6 +490,7 @@ public class Layout_Text extends JFrame {
 		panel_bottom.add(input_size);
 		panel_bottom.add(new JLabel("MB"));
 		panel_bottom.add(check_safe);
+		panel_bottom.add(encode);
 		panel_left.add(panel_log);
 		panel_left.add(drag, BorderLayout.EAST);
 		panel_main.add(panel_top, BorderLayout.NORTH);
@@ -576,7 +581,7 @@ public class Layout_Text extends JFrame {
 				e.printStackTrace();
 			}
 		}
-		String[] conf = TextDataReader.read(config,true);
+		String[] conf = TextDataReader.read(config,true,(String)encode.getSelectedItem());
 		System.out.println(conf[0]);
 		String config = conf[0];
 		ArrayList<String> temp = null;
@@ -589,6 +594,14 @@ public class Layout_Text extends JFrame {
 		temp = scanTag("path",config,false);
 		if(temp != null) {
 			path = convertToString(temp.get(0));
+		}
+		temp = scanTag("encode",config,false);
+		if(temp != null) {
+			encode.setSelectedItem(convertToString(temp.get(0)));
+		}
+		temp = scanTag("maxsize",config,false);
+		if(temp != null) {
+			input_size.setValue(Double.parseDouble(temp.get(0)));
 		}
 		temp = scanTag("text",config,false);
 		if(temp != null) {
@@ -685,7 +698,6 @@ public class Layout_Text extends JFrame {
 	public void applyConfig() {
 		setRegrex(input_regrex.getText());
 		setPath(input_path.getText());
-		setSizeThreshold((double) input_size.getValue());
 	}
 	
 	public void loadInputs() {
@@ -723,12 +735,13 @@ public class Layout_Text extends JFrame {
 		switch(mode) {
 		case 0:
 			StringReplacement.setSerial(System.currentTimeMillis());
+			StringReplacement.setPath(path);
 			change_text.clear();
 			for (int i = 0; i < rows; i++) {
 				change_text.add(new Object[] {tm.getValueAt(i, 0).toString(),tm.getValueAt(i, 1).toString(),Integer.parseInt(tm.getValueAt(i, 2).toString())});
 			}
 			for (File file : files) {
-				log = StringReplacement.replace(file, change_text, check_safe.isSelected());
+				log = StringReplacement.replace(file, change_text, check_safe.isSelected(),(String)encode.getSelectedItem());
 				ArrayList<String> temp = scanTag("log",log,false);
 				ArrayList<String> temp2 = null;
 				ArrayList<String> temp3 = null;
@@ -741,6 +754,7 @@ public class Layout_Text extends JFrame {
 			break;
 		case 1:
 			XmlBlockReplacement.setSerial(System.currentTimeMillis());
+			XmlBlockReplacement.setPath(path);
 			tagtm.clear();
 			for (int i = 0; i < rows; i++) {
 				ArrayList<ArrayList<String>> tca = new ArrayList<ArrayList<String>>();
@@ -789,6 +803,7 @@ public class Layout_Text extends JFrame {
 			break;
 		case 2:
 			FilenameReplacement.setSerial(System.currentTimeMillis());
+			FilenameReplacement.setPath(path);
 			srcs_f.clear();
 			dests_f.clear();
 			for(int i=0;i<rows;i++) {
@@ -804,7 +819,7 @@ public class Layout_Text extends JFrame {
 				dests_f.add(after);	
 			}
 			for(File file:files) {
-				log = FilenameReplacement.replace(file, srcs_f, dests_f, check_safe.isSelected());
+				log = FilenameReplacement.replace(file, srcs_f, dests_f, check_safe.isSelected(),(String)encode.getSelectedItem());
 				ArrayList<String> temp = scanTag("log",log,false);
 				ArrayList<String> temp2 = null;
 				ArrayList<String> temp3 = null;
@@ -816,11 +831,11 @@ public class Layout_Text extends JFrame {
 			}
 			break;
 		case 3:
-			for(int i=0;i<tms.get(mode).getRowCount();i++) {
+			while(tms.get(mode).getRowCount()>0) {
 				tms.get(mode).removeRow(0);
 			}
 			for(File file:files) {
-				String[] ret = TextDataReader.read(file,false);
+				String[] ret = TextDataReader.read(file,false,(String)encode.getSelectedItem());
 				StringBuffer arrs = new StringBuffer();
 				boolean isFirst = true;
 				arrs.append("[");
@@ -868,6 +883,8 @@ public class Layout_Text extends JFrame {
 			SB.append("<config>");
 			SB.append("<regrex>" + convertToXML(regrex) + "</regrex>");
 			SB.append("<path>" + convertToXML(path) + "</path>");
+			SB.append("<encode>" + convertToXML((String)encode.getSelectedItem()) + "</encode>");
+			SB.append("<maxsize>" + convertToXML(input_size.getValue().toString()) + "</maxsize>");
 			System.out.println("OVERRIDE TEXT");
 			SB.append("<text>");
 			for (Object[] ch:change_text) {
@@ -1243,14 +1260,6 @@ public class Layout_Text extends JFrame {
 		this.path = path;
 	}
 
-	public double getSizeThreshold() {
-		return sizeThreshold;
-	}
-
-	public void setSizeThreshold(double sizeThreshold) {
-		this.sizeThreshold = sizeThreshold;
-	}
-	
 	public JTable getBody() {
 		return body;
 	}
@@ -1273,6 +1282,14 @@ public class Layout_Text extends JFrame {
 	
 	public Map<Object, Boolean> getQualify() {
 		return qualify;
+	}
+
+	public JSpinner getInput_size() {
+		return input_size;
+	}
+
+	public void setInput_size(JSpinner input_size) {
+		this.input_size = input_size;
 	}
 
 	public boolean checkRegrexSyntax(String reg) {

@@ -22,6 +22,7 @@ import java.util.Set;
  */
 public class XmlBlockReplacement {
 	private static long serial = System.currentTimeMillis();
+	private static String path = "";
 	public static String replace(File F,ArrayList<Object[]> tag,ArrayList<Object[]> src,Object[] dest,boolean safe) {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
@@ -33,7 +34,7 @@ public class XmlBlockReplacement {
 		Date time = new Date();
 		log.append("<log><message>"+filename+" #STARTED</message><time>"+time.toString()+"</time></log>");
 		if(safe) {
-			backup = new File(F.getAbsolutePath().replace(filename, "")+"backup-"+serial);
+			backup = new File(path+"/backup-"+serial+filepath.replace(path, "").replace(filename, ""));
 			if(!backup.exists()) {
 				backup.mkdirs();
 			}
@@ -146,6 +147,12 @@ public class XmlBlockReplacement {
 	}
 	public static void setSerial(long serial) {
 		XmlBlockReplacement.serial = serial;
+	}
+	public static String getPath() {
+		return path;
+	}
+	public static void setPath(String path) {
+		XmlBlockReplacement.path = path;
 	}
 	
 }

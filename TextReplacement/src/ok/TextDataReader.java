@@ -15,12 +15,12 @@ import java.util.Date;
  */
 public class TextDataReader {
 
-	public static String[] read(File F,boolean flag_empty) {
+	public static String[] read(File F,boolean flag_empty,String encode) {
 		BufferedReader BR = null;
 		String[] ret = {"",""};
 		StringBuffer log = new StringBuffer();
 		try {
-			BR = new BufferedReader(new InputStreamReader(new FileInputStream(F),"UTF-8"));
+			BR = new BufferedReader(new InputStreamReader(new FileInputStream(F),encode));
 			Date time = new Date();
 			if(!BR.ready()) {
 				log.append("<log><message>"+"READ "+F.getName()+" #FAILED!!!</message><time>"+time.toString()+"</time></log>");

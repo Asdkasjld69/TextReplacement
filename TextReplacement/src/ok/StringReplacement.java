@@ -21,7 +21,8 @@ public class StringReplacement {
 
 	private static String RichStyleFont = "rtf";
 	private static long serial = System.currentTimeMillis();
-	public static String replace(File F,ArrayList<Object[]> change, boolean safe) {
+	private static String path = "";
+	public static String replace(File F,ArrayList<Object[]> change, boolean safe, String encode) {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
 		StringBuffer log = new StringBuffer();
@@ -30,8 +31,7 @@ public class StringReplacement {
 		int rows = 0;
 		File backup = null;
 		if(safe) {
-			backup = new File(F.getAbsolutePath().replace(filename, "")+"backup-"+serial);
-			System.out.println(backup.getAbsolutePath());
+			backup = new File(path+"/backup-"+serial+filepath.replace(path, "").replace(filename, ""));
 			if(!backup.exists()) {
 				backup.mkdirs();
 			}
@@ -158,7 +158,7 @@ public class StringReplacement {
 				else {
 					F.renameTo(new File(backup.getAbsolutePath()+"/"+filename));
 				}
-				tmp.renameTo(F.getAbsoluteFile());
+				tmp.renameTo(new File(filepath));
 				time = new Date();
 				log.append("<log><message>"+filename+" #FINISHED("+rows+")</message><time>"+time.toString()+"</time></log>");
 			} catch (Exception e) {
@@ -172,7 +172,7 @@ public class StringReplacement {
 		else {
 			//Ordinary
 			try {
-				BR = new BufferedReader(new InputStreamReader(new FileInputStream(F),"UTF-8"));
+				BR = new BufferedReader(new InputStreamReader(new FileInputStream(F),encode));
 				if(!BR.ready()) {
 					time = new Date();
 					log.append("<log><message>"+filename+" NOT READY #FAILED!!!</message><time>"+time.toString()+"</time></log>");
@@ -277,9 +277,8 @@ public class StringReplacement {
 				}
 				BR.close();
 				File tmp = new File(filepath+".new");
-				BW = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp),"UTF-8"));
+				BW = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp),encode));
 				BW.write(SB.toString());
-				System.out.println(SB.toString());
 				BW.close();
 				if(!safe) {
 					F.delete();
@@ -287,7 +286,7 @@ public class StringReplacement {
 				else {
 					F.renameTo(new File(backup.getAbsolutePath()+"/"+filename));
 				}
-				tmp.renameTo(F.getAbsoluteFile());
+				tmp.renameTo(new File(filepath));
 				time = new Date();
 				log.append("<log><message>"+filename+" #FINISHED("+rows+")</message><time>"+time.toString()+"</time></log>");
 			} catch (Exception e) {
@@ -296,6 +295,7 @@ public class StringReplacement {
 				log.append("<log><message>"+filename+" #FAILED!!!</message><time>"+time.toString()+"</time></log>");
 				e.printStackTrace();
 			}
+			System.out.println(F.getAbsolutePath());
 			return log.toString();
 		}
 	}
@@ -304,6 +304,12 @@ public class StringReplacement {
 	}
 	public static void setSerial(long serial) {
 		StringReplacement.serial = serial;
+	}
+	public static String getPath() {
+		return path;
+	}
+	public static void setPath(String path) {
+		StringReplacement.path = path;
 	}
 	
 	

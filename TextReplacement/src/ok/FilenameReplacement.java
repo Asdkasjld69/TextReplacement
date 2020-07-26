@@ -6,8 +6,10 @@ package ok;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -17,7 +19,8 @@ import java.util.Date;
  */
 public class FilenameReplacement {
 	private static long serial = System.currentTimeMillis();
-	public static String replace(File F,ArrayList<Object[]> srcs,ArrayList<Object> dests,boolean safe) {
+	private static String path = "";
+	public static String replace(File F,ArrayList<Object[]> srcs,ArrayList<Object> dests,boolean safe, String encode) {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
 		File backup = null;
@@ -25,19 +28,19 @@ public class FilenameReplacement {
 		String filepath = F.getAbsolutePath();
 		String filename = F.getName();
 		Date time = new Date();
-		log.append(F.getName()+" #STARTED\t"+time.toString()+"\n");
+		log.append("<log><message>"+F.getName()+" #STARTED</message><time>"+time.toString()+"</time></log>");
 		if(safe) {
-			backup = new File(F.getAbsolutePath().replace(F.getName(), "")+"backup-"+serial);
+			backup = new File(path+"/backup-"+serial+filepath.replace(path, "").replace(filename, ""));
 			if(!backup.exists()) {
 				backup.mkdirs();
 			}
 		}
 		try {
 			if(safe) {
-				BR = new BufferedReader(new FileReader(F));
+				BR = new BufferedReader(new InputStreamReader(new FileInputStream(F),encode));
 				if(!BR.ready()) {
 					time = new Date();
-					log.append(F.getName()+" NOT READY #FAILED!!!\t"+time.toString()+"\n");
+					log.append("<log><message>"+F.getName()+" NOT READY #FAILED!!!</message><time>"+time.toString()+"</time></log>");
 					BR.close();
 					return log.toString();
 				}
@@ -83,19 +86,19 @@ public class FilenameReplacement {
 					}
 				}
 				File tmp = new File(backup.getAbsolutePath()+"/"+F.getName());
-				System.out.println(filepath);
-				BW = new BufferedWriter(new FileWriter(tmp));
+				BW = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp),encode));
 				BW.write(SB.toString());
+				System.out.println(SB.toString());
 				BW.close();
 			}
 			F.renameTo(new File(filepath.replace(F.getName(), filename)));
 			System.out.println(F.getName());
 			time = new Date();
-			log.append(F.getName()+" -> "+filename+" #FINISHED\t"+time.toString()+"\n");
+			log.append("<log><message>"+F.getName()+" -> "+filename+" #FINISHED</message><time>"+time.toString()+"</time></log>");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			time = new Date();
-			log.append(F.getName()+" #FAILED\t"+time.toString()+"\n");
+			log.append("<log><message>"+F.getName()+" #FAILED</message><time>"+time.toString()+"</time></log>");
 			e.printStackTrace();
 		}
 		return log.toString();
@@ -106,5 +109,12 @@ public class FilenameReplacement {
 	public static void setSerial(long serial) {
 		FilenameReplacement.serial = serial;
 	}
+	public static String getPath() {
+		return path;
+	}
+	public static void setPath(String path) {
+		FilenameReplacement.path = path;
+	}
+	
 	
 }
