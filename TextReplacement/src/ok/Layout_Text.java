@@ -255,7 +255,20 @@ public class Layout_Text extends JFrame {
 				}
 			}
 		};
-		DefaultTableModel DTM_A = new DefaultTableModel(null, headers_a);
+		DefaultTableModel DTM_A = new DefaultTableModel(null, headers_a) {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 2386873316166318539L;
+
+			@Override
+			public void setValueAt(Object aValue, int row, int column) {
+				// TODO Auto-generated method stub
+				return;
+			}
+			
+		};
 		DefaultTableModel LDTM = new DefaultTableModel(null, lheaders) {
 
 			/**
@@ -843,7 +856,7 @@ public class Layout_Text extends JFrame {
 					if(!isFirst) {
 						arrs.append(",");
 					}
-					arrs.append("\""+s+"\"");
+					arrs.append("\""+s.trim()+"\"");
 					isFirst = false;
 				}
 				arrs.append("]");
