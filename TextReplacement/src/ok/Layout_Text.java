@@ -18,8 +18,9 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -96,6 +97,7 @@ public class Layout_Text extends JFrame {
 	private int state;
 	private int mode;
 	public static long LAUNCH_TIME;
+	public final String SYSENCODE = "UTF-8";
 
 	public Layout_Text() {
 		super();
@@ -594,7 +596,7 @@ public class Layout_Text extends JFrame {
 				e.printStackTrace();
 			}
 		}
-		String[] conf = TextDataReader.read(config,true,(String)encode.getSelectedItem());
+		String[] conf = TextDataReader.read(config,true,SYSENCODE);
 		System.out.println(conf[0]);
 		String config = conf[0];
 		ArrayList<String> temp = null;
@@ -892,7 +894,7 @@ public class Layout_Text extends JFrame {
 			}
 		}
 		try {
-			BW = new BufferedWriter(new FileWriter(config));
+			BW = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(config),SYSENCODE));
 			SB.append("<config>");
 			SB.append("<regrex>" + convertToXML(regrex) + "</regrex>");
 			SB.append("<path>" + convertToXML(path) + "</path>");
