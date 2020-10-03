@@ -858,7 +858,7 @@ public class Layout_Text extends JFrame {
 					if(!isFirst) {
 						arrs.append(",");
 					}
-					arrs.append("\""+s.trim()+"\"");
+					arrs.append("\""+s.trim().replace("\"", "\\\"")+"\"");
 					isFirst = false;
 				}
 				arrs.append("]");

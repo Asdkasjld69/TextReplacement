@@ -3,13 +3,11 @@
  */
 package ok;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -20,9 +18,10 @@ import java.util.Date;
 public class FilenameReplacement {
 	private static long serial = System.currentTimeMillis();
 	private static String path = "";
+	private static int bufferSize = 2048;
+
 	public static String replace(File F,ArrayList<Object[]> srcs,ArrayList<Object> dests,boolean safe, String encode) {
-		BufferedReader BR = null;
-		BufferedWriter BW = null;
+		
 		File backup = null;
 		StringBuffer log = new StringBuffer();
 		String filepath = F.getAbsolutePath();
@@ -36,60 +35,53 @@ public class FilenameReplacement {
 			}
 		}
 		try {
-			if(safe) {
-				BR = new BufferedReader(new InputStreamReader(new FileInputStream(F),encode));
-				if(!BR.ready()) {
-					time = new Date();
-					log.append("<log><message>"+F.getName()+" NOT READY #FAILED!!!</message><time>"+time.toString()+"</time></log>");
-					BR.close();
-					return log.toString();
-				}
-		
-				String line=null;
-				StringBuffer SB = new StringBuffer();
-				while((line=BR.readLine())!=null) {
-					SB.append(line+"\n");
-				}
-				BR.close();
-				for(int i=0;i<srcs.size();i++) {
-					String match = (String)srcs.get(i)[0];
-					String name = filename.substring(0, filename.indexOf("."));
-					String suffix = filename.substring(filename.indexOf("."));
-					System.out.println(name+suffix);
-					if(name.contains(match)) {
-						String value = (String)dests.get(i);
-						if(srcs.get(i).length>1) {
-							boolean flag = true;
-							int occ = Integer.parseInt((String) srcs.get(i)[1]) ;
-							int index = 0;
-							while(occ>=0) {
-								index = name.indexOf(match);
-								if(index<0) {
-									flag = false;
-									break;
-								}
-								index += occ>0?match.length():0;
-								name = name.substring(index);
-								occ--;
+			for(int i=0;i<srcs.size();i++) {
+				String match = (String)srcs.get(i)[0];
+				String name = filename.substring(0, filename.indexOf("."));
+				String suffix = filename.substring(filename.indexOf("."));
+				System.out.println(name+suffix);
+				if(name.contains(match)) {
+					String value = (String)dests.get(i);
+					if(srcs.get(i).length>1) {
+						boolean flag = true;
+						int occ = Integer.parseInt((String) srcs.get(i)[1]) ;
+						int index = 0;
+						while(occ>=0) {
+							index = name.indexOf(match);
+							if(index<0) {
+								flag = false;
+								break;
 							}
-							if(flag) {
-								index = filename.lastIndexOf(name);
-								name = name.replaceFirst(match,value);
-								System.out.println(filename.substring(0, index)+"+"+name+"+"+suffix);
-								filename = filename.substring(0, index).concat(name).concat(suffix);
-							}
+							index += occ>0?match.length():0;
+							name = name.substring(index);
+							occ--;
 						}
-						else {
-							filename = name.replace(match,value).concat(suffix);
+						if(flag) {
+							index = filename.lastIndexOf(name);
+							name = name.replaceFirst(match,value);
+							System.out.println(filename.substring(0, index)+"+"+name+"+"+suffix);
+							filename = filename.substring(0, index).concat(name).concat(suffix);
 						}
-						System.out.println(filename);
 					}
+					else {
+						filename = name.replace(match,value).concat(suffix);
+					}
+					System.out.println(filename);
 				}
+			}
+			if(safe) {
 				File tmp = new File(backup.getAbsolutePath()+"/"+F.getName());
-				BW = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tmp),encode));
-				BW.write(SB.toString());
-				System.out.println(SB.toString());
-				BW.close();
+				InputStream in = new FileInputStream(F);
+				OutputStream out = new FileOutputStream(tmp);
+				byte[] buffer = new byte[bufferSize];
+        int len;
+
+        while ((len = in.read(buffer)) > 0) {
+            out.write(buffer, 0, len);
+        }
+				
+				in.close();
+				out.close();
 			}
 			F.renameTo(new File(filepath.replace(F.getName(), filename)));
 			System.out.println(F.getName());
