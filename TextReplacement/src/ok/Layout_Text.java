@@ -60,8 +60,10 @@ public class Layout_Text extends JFrame {
 	private static final String[] headers_t = { "Tag", "Type", "Match", "Value" };
 	private static final String[] headers_f = { "Before", "After", "Index"};
 	private static final String[] headers_a = { "File", "Array", "Length"};
+	private static final String[] headers_d = { "File", "Size", "Path"};
 	private static final String[] lheaders = { "Message", "Time" };
-	private static final String[] modes = {"Text","Tag","Filename","Array","Encode"};
+	/*模式选择*/
+	private static final String[] modes = {"Text","Tag","Filename","Array","Removal"};
 	private static List<String[]> signs;
 	private static Map<Integer,DefaultTableModel> tms;
 	private String regrex;
@@ -202,6 +204,7 @@ public class Layout_Text extends JFrame {
 		buttons.put("remove", button_remove);
 		buttons.put("commit", button_commit);
 		buttons.put("filename_index", button_index);
+		/*Text Mode*/
 		DefaultTableModel DTM = new DefaultTableModel(null, headers) {
 
 			/**
@@ -231,7 +234,9 @@ public class Layout_Text extends JFrame {
 			}
 			
 		};
+		/*Tag Mode*/
 		DefaultTableModel DTM_T = new DefaultTableModel(null, headers_t);
+		/*Filename Mode*/
 		DefaultTableModel DTM_F = new DefaultTableModel(null, headers_f) {
 
 			/**
@@ -257,6 +262,7 @@ public class Layout_Text extends JFrame {
 				}
 			}
 		};
+		/*Array Mode*/
 		DefaultTableModel DTM_A = new DefaultTableModel(null, headers_a) {
 
 			/**
@@ -271,6 +277,21 @@ public class Layout_Text extends JFrame {
 			}
 			
 		};
+		
+		DefaultTableModel DTM_D = new DefaultTableModel(null, headers_d) {
+			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = -3540013149016084229L;
+
+			@Override
+			public void setValueAt(Object aValue, int row, int column) {
+				// TODO Auto-generated method stub
+				return;
+			}
+		};
+		/*Log*/
 		DefaultTableModel LDTM = new DefaultTableModel(null, lheaders) {
 
 			/**
@@ -291,6 +312,7 @@ public class Layout_Text extends JFrame {
 		tms.put(1, DTM_T);
 		tms.put(2, DTM_F);
 		tms.put(3, DTM_A);
+		tms.put(4, DTM_D);
 		change_text = new ArrayList<Object[]>();
 		srcs_f = new ArrayList<Object[]>();
 		dests_f = new ArrayList<Object>();
@@ -368,7 +390,7 @@ public class Layout_Text extends JFrame {
 					if (message.equals("STARTED")) {
 						comp.setBackground(new Color(128, 196, 255));
 					}
-					if (message.matches("FINISHED(.*)")) {
+					if (message.matches("FINISHED(.*)")||message.matches("COMPLETE.*")) {
 						comp.setBackground(new Color(128, 255, 128));
 					}
 					if (message.matches("FAILED.*")) {
@@ -390,7 +412,7 @@ public class Layout_Text extends JFrame {
 		dialog_about = new JDialog();
 		error = new JDialog();
 		intro = new JLabel(
-				"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>text</u> <i>replacing</i>!</html>");
+				"<html>A <font color='#66ccff'>Tool</font> for <font color='red'><b>MASS</b></font> <u>file</u> <i>processing</i>!</html>");
 		check_safe = new JCheckBox("Safe");
 		stopflag = false;
 		state = 0;
@@ -405,23 +427,23 @@ public class Layout_Text extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				mode = Integer.parseInt(e.getActionCommand());
+				body.setModel(tms.get(mode));
 				switch(mode) {
 				case 0:
 					loadTopPanel("text");
-					body.setModel(DTM);
 					setTitle("Replace Text");break;
 				case 1:
 					loadTopPanel("tag");
-					body.setModel(DTM_T);
 					setTitle("Replace Tag");break;
 				case 2:
 					loadTopPanel("filename");
-					body.setModel(DTM_F);
 					setTitle("Replace Filename");break;
 				case 3:
 					loadTopPanel("array");
-					body.setModel(DTM_A);
 					setTitle("To Array");break;
+				case 4:
+					loadTopPanel("removal");
+					setTitle("Removal");break;
 				}
 				for(int i=0;i<switchmode.getItemCount();i++) {
 					if(i==mode) {
@@ -875,6 +897,35 @@ public class Layout_Text extends JFrame {
 				}
 			}
 			break;
+		case 4:
+			while(tms.get(mode).getRowCount()>0) {
+				tms.get(mode).removeRow(0);
+			}
+			File backup = null;			
+			boolean flag = false;
+			boolean safe = check_safe.isSelected();
+			String name = "";
+			long serial = System.currentTimeMillis();
+			for(File file:files) {
+				String filepath = file.getAbsolutePath();
+				String filename = file.getName();
+				if(safe) {
+					backup = new File(path+"/backup-"+serial+filepath.replace(path, "").replace(filename, ""));
+					if(!backup.exists()) {
+						backup.mkdirs();
+					}
+				}
+				name = file.getName();
+				addRow(new Object[] {name,file.length(),file.getAbsolutePath()},tms.get(mode),this.body);
+				if(safe) {
+					flag = file.renameTo(new File(backup.getAbsolutePath()+"/"+filename));
+				}
+				else {
+					flag = file.delete();
+				}
+				addRow(new Object[] {name+" #"+(flag?"COMPLETE":"FAILED"),new Date().toString()},tms.get(-1),this.log);
+			}
+			break;
 		}
 		log = "END #COMMIT";
 		time = new Date();
@@ -1177,6 +1228,7 @@ public class Layout_Text extends JFrame {
 
 			});
 			break;
+		case "removal":
 		case "array":
 			panel_top.setLayout(new GridLayout(1, 1));
 			panel_top_r0.setLayout(new GridLayout(1, 2));
@@ -1184,6 +1236,7 @@ public class Layout_Text extends JFrame {
 			break;
 		}
 		switch(T) {
+		case "removal":
 		case "array":
 			panel_top_rb.add(buttons.get("commit"));
 			break;
