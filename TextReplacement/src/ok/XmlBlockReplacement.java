@@ -23,6 +23,44 @@ import java.util.Set;
 public class XmlBlockReplacement {
 	private static long serial = System.currentTimeMillis();
 	private static String path = "";
+	
+	private static boolean check(String line, HashMap<String,Boolean> ofm) {
+		boolean flag = false;
+		Set<String> ks = ofm.keySet();
+		Iterator<String> it = ks.iterator();
+		String t = "";
+		while(it.hasNext()) {
+			t = it.next();
+			if(t.startsWith("not")) {
+				String notr = t.replaceFirst("not", "");
+				if(ofm.containsKey(notr)) {
+					if(ofm.get(t)&&ofm.get(notr)) {
+						flag = true;break;
+					}
+				}
+				else {
+					if(ofm.get(t)) {
+						flag = true;break;
+					}
+				}
+			}
+			else {
+				String not = "not".concat(t);
+				if(ofm.containsKey(not)) {
+					if(ofm.get(t)&&ofm.get(not)) {
+						flag = true;break;
+					}
+				}
+				else {
+					if(ofm.get(t)) {
+						flag = true;break;
+					}
+				}
+			}
+		}
+		return flag;
+	}
+	
 	public static String replace(File F,ArrayList<Object[]> tag,ArrayList<Object[]> src,Object[] dest,boolean safe) {
 		BufferedReader BR = null;
 		BufferedWriter BW = null;
@@ -55,12 +93,13 @@ public class XmlBlockReplacement {
 				boolean flag = false;
 				tline = line;
 				for(int i=0;i<tag.size();i++) {
+					HashMap<String,Boolean> ofm = null;
 					if(line.contains("<"+tag.get(i)[0])){
 						while(!line.contains(">")) {
 							line.replace("\n", "");
 							line += BR.readLine();
 						}
-						HashMap<String,Boolean> ofm = new HashMap<String,Boolean>();
+						ofm = new HashMap<String,Boolean>();
 						for(int n=0;n<src.get(i).length;n++) {
 							if(!((String) tag.get(i)[n+1]).contains("not")) {
 								ofm.put((String)tag.get(i)[n+1],line.contains((String)src.get(i)[n]));
@@ -69,43 +108,19 @@ public class XmlBlockReplacement {
 								ofm.put((String)tag.get(i)[n+1],!line.contains((String)src.get(i)[n]));
 							}
 						}
-						Set<String> ks = ofm.keySet();
-						Iterator<String> it = ks.iterator();
-						String t = "";
-						while(it.hasNext()) {
-							t = it.next();
-							if(t.startsWith("not")) {
-								String notr = t.replaceFirst("not", "");
-								if(ofm.containsKey(notr)) {
-									if(ofm.get(t)&&ofm.get(notr)) {
-										flag = true;break;
-									}
-								}
-								else {
-									if(ofm.get(t)) {
-										flag = true;break;
-									}
-								}
-							}
-							else {
-								String not = "not".concat(t);
-								if(ofm.containsKey(not)) {
-									if(ofm.get(t)&&ofm.get(not)) {
-										flag = true;break;
-									}
-								}
-								else {
-									if(ofm.get(t)) {
-										flag = true;break;
-									}
-								}
-							}
-						}
+						flag = check(line,ofm);
 						System.out.println(ofm);
 					}
 					if(flag) {
+						int stack = 1;
 						while((line=BR.readLine())!=null){
+							if(check(line,ofm)) {
+								stack++;
+							}
 							if(line.contains("/"+(String)tag.get(i)[0]+">")) {
+								stack--;
+							}
+							if(stack<=0) {
 								break;
 							}
 						}
