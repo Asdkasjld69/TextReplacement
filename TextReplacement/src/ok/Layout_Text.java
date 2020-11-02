@@ -64,6 +64,7 @@ public class Layout_Text extends JFrame {
 	private static final String[] lheaders = { "Message", "Time" };
 	/*模式选择*/
 	private static final String[] modes = {"Text","Tag","Filename","Array","Removal"};
+	private static final String[] proc_attr = {"head","head-seg","tail-seg","join","tail"};
 	private static List<String[]> signs;
 	private static Map<Integer,DefaultTableModel> tms;
 	private String regrex;
@@ -88,6 +89,7 @@ public class Layout_Text extends JFrame {
 	private JPanel panel_left;
 	private Map<String, JButton> buttons;
 	private Map<Object, Boolean> qualify;
+	private Map<String, JTextField> proc_arr;
 	private Dimension size;
 	private double ratio;
 	private JDialog dialog_about;
@@ -319,7 +321,7 @@ public class Layout_Text extends JFrame {
 		tagtm = new HashMap<String, ArrayList<ArrayList<String>>>();
 		tagv = new HashMap<String, String>();
 		input_regrex = new JTextField(20);
-		input_path = new JTextField();
+		input_path = new JTextField(20);
 		input_depth = new JSpinner(new SpinnerNumberModel(0,0,100,1));
 		input_size = new JSpinner(new SpinnerNumberModel(1.0,0.0,512.0,1.0));
 		body = new JTable(DTM) {
@@ -401,6 +403,12 @@ public class Layout_Text extends JFrame {
 				return comp;
 			}
 		};
+		proc_arr = new HashMap<String, JTextField>();
+		int i=0;
+		for(String pa:proc_attr) {
+			proc_arr.put(pa, new JTextField(17));
+		}
+		
 		panel_body = new JScrollPane(body);
 		panel_log = new JScrollPane(log);
 		panel_top = new JPanel();
@@ -457,13 +465,13 @@ public class Layout_Text extends JFrame {
 			}
 
 		};
-		for(int i=0;i<modes.length;i++) {
+		for(i=0;i<modes.length;i++) {
 			JMenuItem mode_temp = new JMenuItem(modes[i]);
 			mode_temp.setActionCommand(String.valueOf(i));
 			switchmode.add(mode_temp);
 			mode_temp.addActionListener(mode_action);
 		}
-		for(int i=0;i<switchmode.getItemCount();i++) {
+		for(i=0;i<switchmode.getItemCount();i++) {
 			if(i==mode) {
 				switchmode.getItem(i).setText("*"+modes[i]+"*");
 			}
@@ -719,6 +727,16 @@ public class Layout_Text extends JFrame {
 			}
 		}
 		
+		temp = scanTag("array",config,false);
+		if(temp!=null) {
+			for(String pa:proc_attr) {
+				temp2 = scanTag(pa,temp.get(0),false);
+				if(temp2!=null) {
+					proc_arr.get(pa).setText(convertToString(temp2.get(0)));
+				}
+			}
+		}
+		
 		loadInputs();
 		temp = scanTag("log",conf[1],false);
 		for (String log:temp) {
@@ -875,15 +893,17 @@ public class Layout_Text extends JFrame {
 				String[] ret = TextDataReader.read(file,false,(String)encode.getSelectedItem());
 				StringBuffer arrs = new StringBuffer();
 				boolean isFirst = true;
-				arrs.append("[");
+				arrs.append(proc_arr.get("head").getText());
 				for(String s:ret[0].split("\n")) {
 					if(!isFirst) {
-						arrs.append(",");
+						arrs.append(proc_arr.get("join").getText());
 					}
-					arrs.append("\""+s.trim().replace("\"", "\\\"")+"\"");
+					arrs.append(proc_arr.get("head-seg").getText());
+					arrs.append(s.trim().replace("\"", "\\\""));
+					arrs.append(proc_arr.get("tail-seg").getText());
 					isFirst = false;
 				}
-				arrs.append("]");
+				arrs.append(proc_arr.get("tail").getText());
 				
 				log = ret[1];
 				addRow(new Object[] {file.getName(),arrs.toString(),ret[0].split("\n").length},tms.get(mode),this.body);
@@ -898,9 +918,6 @@ public class Layout_Text extends JFrame {
 			}
 			break;
 		case 4:
-			while(tms.get(mode).getRowCount()>0) {
-				tms.get(mode).removeRow(0);
-			}
 			File backup = null;			
 			boolean flag = false;
 			boolean safe = check_safe.isSelected();
@@ -993,6 +1010,11 @@ public class Layout_Text extends JFrame {
 				SB.append("</item>");
 			}
 			SB.append("</filename>");
+			SB.append("<array>");
+			for(String pa:proc_attr) {
+				SB.append("<"+pa+">"+proc_arr.get(pa).getText()+"</"+pa+">");
+			}
+			SB.append("</array>");
 			SB.append("</config>");
 			System.out.println(SB.toString());
 			System.out.println("OVERRIDING!");
@@ -1229,15 +1251,28 @@ public class Layout_Text extends JFrame {
 			});
 			break;
 		case "removal":
-		case "array":
 			panel_top.setLayout(new GridLayout(1, 1));
-			panel_top_r0.setLayout(new GridLayout(1, 2));
+			panel_top_r0.setLayout(new GridLayout(1, 1));
 			panel_top_rb.setLayout(new GridLayout(1, 1));
+			break;
+		case "array":
+			panel_top.setLayout(new GridLayout(2, 1));
+			panel_top_r0.setLayout(new GridLayout(2, 5));
+			panel_top_rb.setLayout(new GridLayout(1, 1));
+			for(String pa:proc_attr) {
+				panel_top_r0.add(new JLabel(pa.toUpperCase()));
+			}
+			for(String pa:proc_attr) {
+				panel_top_r0.add(proc_arr.get(pa));
+			}
 			break;
 		}
 		switch(T) {
 		case "removal":
+			panel_top_rb.add(buttons.get("commit"));
+			break;
 		case "array":
+			panel_top.add(panel_top_r0);
 			panel_top_rb.add(buttons.get("commit"));
 			break;
 		default:
