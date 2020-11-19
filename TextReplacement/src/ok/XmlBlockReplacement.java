@@ -109,21 +109,30 @@ public class XmlBlockReplacement {
 							}
 						}
 						flag = check(line,ofm);
-						System.out.println(ofm);
+						System.out.println(ofm+":"+line);
 					}
 					if(flag) {
 						int stack = 1;
-						while((line=BR.readLine())!=null){
-							if(check(line,ofm)) {
-								stack++;
-							}
-							if(line.contains("/"+(String)tag.get(i)[0]+">")) {
-								stack--;
-							}
+						boolean first = true;
+						if(line.contains("/>")) {
+							System.out.println("close detected:\t"+line);
+							stack--;
+						}
+						do{
 							if(stack<=0) {
 								break;
 							}
-						}
+							if(line.contains("<"+tag.get(i)[0]) && !first) {
+								System.out.println(ofm+":"+line);
+								stack++;
+								System.out.println("open detected:\t"+line);
+							}
+							if(line.contains("/"+(String)tag.get(i)[0]+">")) {
+								stack--;
+								System.out.println("close detected:\t"+line);
+							}
+							first = false;
+						}while((line=BR.readLine())!=null);
 						line = (String)dest[i];
 						break;
 					}
